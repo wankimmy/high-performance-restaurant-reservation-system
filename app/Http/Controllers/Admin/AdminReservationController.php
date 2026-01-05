@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Reservation;
 use App\Models\ReservationSetting;
 use App\Models\Table;
+use App\Services\OtpService;
+use App\Services\WhatsAppService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -13,6 +15,11 @@ use Illuminate\Support\Facades\Validator;
 
 class AdminReservationController extends Controller
 {
+    public function __construct(
+        private OtpService $otpService,
+        private WhatsAppService $whatsAppService
+    ) {}
+
     public function index(Request $request)
     {
         $query = Reservation::with('table')
@@ -51,6 +58,21 @@ class AdminReservationController extends Controller
 
         $reservation->cancel();
 
+        // Make table available again when reservation is cancelled
+        $table = $reservation->table;
+        if ($table) {
+            // Check if there are no other active reservations for this table
+            $hasActiveReservations = Reservation::where('table_id', $table->id)
+                ->where('status', '!=', 'cancelled')
+                ->where('id', '!=', $reservation->id)
+                ->exists();
+            
+            if (!$hasActiveReservations) {
+                $table->is_available = true;
+                $table->save();
+            }
+        }
+
         // Clear cache for availability
         Cache::forget("available_tables_{$reservation->reservation_date}_{$reservation->reservation_time}");
 
@@ -80,7 +102,7 @@ class AdminReservationController extends Controller
         $setting->is_open = $data['is_open'];
         $setting->save();
 
-        // Clear cache
+        // Clear cache for this specific date and the closed dates list
         ReservationSetting::clearCache($data['date']);
 
         return response()->json([
@@ -103,6 +125,55 @@ class AdminReservationController extends Controller
         }
 
         return view('admin.settings.index', compact('settings'));
+    }
+
+    /**
+     * Mark reservation as arrived and send OTP
+     */
+    public function markAsArrived(Request $request, int $id): JsonResponse
+    {
+        $reservation = Reservation::with('table')->findOrFail($id);
+
+        if ($reservation->has_arrived) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Customer has already been marked as arrived',
+            ], 400);
+        }
+
+        if ($reservation->status !== 'confirmed') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only confirmed reservations can be marked as arrived',
+            ], 400);
+        }
+
+        // Generate arrival OTP
+        $otpData = $this->otpService->generateOtp($reservation->customer_phone, $reservation->id);
+
+        // Send arrival OTP via WhatsApp
+        $this->whatsAppService->sendArrivalOtp(
+            $reservation->customer_phone,
+            $otpData['otp_code'],
+            [
+                'id' => $reservation->id,
+                'customer_name' => $reservation->customer_name,
+                'table_name' => $reservation->table->name,
+                'reservation_date' => $reservation->reservation_date->format('M d, Y'),
+                'reservation_time' => \Carbon\Carbon::parse($reservation->reservation_time)->format('g:i A'),
+            ]
+        );
+
+        // Mark as arrived
+        $reservation->update([
+            'has_arrived' => true,
+            'arrived_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Customer marked as arrived. OTP sent to WhatsApp for verification.',
+        ]);
     }
 }
 

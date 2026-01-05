@@ -37,6 +37,8 @@ class ReservationSetting extends Model
     public static function clearCache(string $date): void
     {
         Cache::forget("reservation_date_open_{$date}");
+        // Also clear the closed dates cache when a date is updated
+        Cache::forget("closed_dates_all");
     }
 }
 

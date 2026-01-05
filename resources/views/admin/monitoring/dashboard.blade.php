@@ -1,25 +1,20 @@
 @extends('layouts.admin')
 
-@section('title', 'System Monitoring Dashboard')
-
-@section('page-title', '📊 System Monitoring Dashboard')
-
-@section('subtitle-class', 'refresh-info')
-@section('page-subtitle')
-    Auto-refreshing every minute | Last updated: <span id="lastUpdate">Loading...</span>
-@endsection
-
-@push('styles')
-<link rel="stylesheet" href="{{ asset('css/monitoring.css') }}">
-@endpush
+@section('title', 'Monitoring')
+@section('page-title', 'System Monitoring Dashboard')
 
 @section('content')
-<div id="errorMessage" class="error" style="display: none;"></div>
+<div id="errorMessage" class="hidden mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded"></div>
 
 <div id="dashboardContent">
-    <div class="loading">
-        <div class="loading-indicator">Loading metrics...</div>
+    <div class="text-center py-12">
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        <p class="mt-4 text-gray-500">Loading metrics...</p>
     </div>
+</div>
+
+<div class="mt-4 text-center text-sm text-gray-500">
+    Auto-refreshing every minute | Last updated: <span id="lastUpdate">Loading...</span>
 </div>
 @endsection
 
@@ -40,7 +35,7 @@
         .then(data => {
             if (data.success) {
                 renderDashboard(data.data);
-                document.getElementById('errorMessage').style.display = 'none';
+                document.getElementById('errorMessage').classList.add('hidden');
                 updateLastUpdateTime();
             } else {
                 showError(data.message || 'Failed to load metrics');
@@ -56,165 +51,138 @@
         const content = document.getElementById('dashboardContent');
         
         content.innerHTML = `
-            <div class="grid">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <!-- System Resources -->
-                <div class="card">
-                    <div class="card-header">
-                        <span class="card-title">🖥️ System Resources</span>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-label">CPU Usage</div>
-                        <div class="metric-value">${metrics.system.cpu.usage.toFixed(1)}%</div>
-                        <div class="progress-bar">
-                            <div class="progress-fill ${metrics.system.cpu.status}" 
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">🖥️ System Resources</h3>
+                    
+                    <div class="mb-4">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm text-gray-600">CPU Usage</span>
+                            <span class="text-sm font-medium text-gray-900">${metrics.system.cpu.usage.toFixed(1)}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-${getStatusColor(metrics.system.cpu.status)} h-2 rounded-full" 
                                  style="width: ${metrics.system.cpu.usage}%"></div>
                         </div>
                     </div>
-                    <div class="metric">
-                        <div class="metric-label">Memory Usage</div>
-                        <div class="metric-value">${metrics.system.memory.usage.toFixed(1)}%</div>
-                        <div class="metric-detail">${metrics.system.memory.used} / ${metrics.system.memory.total}</div>
-                        <div class="progress-bar">
-                            <div class="progress-fill ${metrics.system.memory.status}" 
+                    
+                    <div class="mb-4">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm text-gray-600">Memory Usage</span>
+                            <span class="text-sm font-medium text-gray-900">${metrics.system.memory.usage.toFixed(1)}%</span>
+                        </div>
+                        <div class="text-xs text-gray-500 mb-1">${metrics.system.memory.used} / ${metrics.system.memory.total}</div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-${getStatusColor(metrics.system.memory.status)} h-2 rounded-full" 
                                  style="width: ${metrics.system.memory.usage}%"></div>
                         </div>
                     </div>
-                    <div class="metric">
-                        <div class="metric-label">Disk Usage</div>
-                        <div class="metric-value">${metrics.system.disk.usage.toFixed(1)}%</div>
-                        <div class="metric-detail">${metrics.system.disk.used} / ${metrics.system.disk.total}</div>
-                        <div class="progress-bar">
-                            <div class="progress-fill ${metrics.system.disk.status}" 
+                    
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm text-gray-600">Disk Usage</span>
+                            <span class="text-sm font-medium text-gray-900">${metrics.system.disk.usage.toFixed(1)}%</span>
+                        </div>
+                        <div class="text-xs text-gray-500 mb-1">${metrics.system.disk.used} / ${metrics.system.disk.total}</div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-${getStatusColor(metrics.system.disk.status)} h-2 rounded-full" 
                                  style="width: ${metrics.system.disk.usage}%"></div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Queue System -->
-                <div class="card">
-                    <div class="card-header">
-                        <span class="card-title">📋 Queue System</span>
-                        <span class="status-badge ${metrics.queue.status}">
-                            ${metrics.queue.status === 'success' ? 'Healthy' : 
-                              metrics.queue.status === 'warning' ? 'Warning' : 'Critical'}
+                <div class="bg-white shadow rounded-lg p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-medium text-gray-900">📋 Queue System</h3>
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-${getStatusColor(metrics.queue.status)}-100 text-${getStatusColor(metrics.queue.status)}-800">
+                            ${metrics.queue.status === 'success' ? 'Healthy' : metrics.queue.status === 'warning' ? 'Warning' : 'Critical'}
                         </span>
                     </div>
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <div class="stat-value">${metrics.queue.pending}</div>
-                            <div class="stat-label">Pending Jobs</div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="text-center p-3 bg-blue-50 rounded">
+                            <div class="text-2xl font-bold text-blue-600">${metrics.queue.pending}</div>
+                            <div class="text-xs text-gray-600 mt-1">Pending Jobs</div>
                         </div>
-                        <div class="stat-item">
-                            <div class="stat-value">${metrics.queue.failed}</div>
-                            <div class="stat-label">Failed Jobs</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">${metrics.queue.processed_today}</div>
-                            <div class="stat-label">Processed Today</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">${metrics.queue.failed_today}</div>
-                            <div class="stat-label">Failed Today</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Workers -->
-                <div class="card">
-                    <div class="card-header">
-                        <span class="card-title">⚙️ Queue Workers</span>
-                        <span class="status-badge ${metrics.workers.status}">
-                            ${metrics.workers.is_running ? 'Running' : 'Stopped'}
-                        </span>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-label">Active Workers</div>
-                        <div class="metric-value">${metrics.workers.active} / ${metrics.workers.total}</div>
-                        <div class="metric-detail">
-                            ${metrics.workers.is_running ? 
-                                '✅ Workers are processing jobs' : 
-                                '❌ No workers running. Start queue worker!'}
+                        <div class="text-center p-3 bg-red-50 rounded">
+                            <div class="text-2xl font-bold text-red-600">${metrics.queue.failed}</div>
+                            <div class="text-xs text-gray-600 mt-1">Failed Jobs</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Visitors -->
-                <div class="card">
-                    <div class="card-header">
-                        <span class="card-title">👥 Visitors</span>
-                    </div>
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <div class="stat-value">${metrics.visitors.current}</div>
-                            <div class="stat-label">Active Now</div>
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">👥 Visitors</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="text-center p-3 bg-green-50 rounded">
+                            <div class="text-2xl font-bold text-green-600">${metrics.visitors.current}</div>
+                            <div class="text-xs text-gray-600 mt-1">Active Now</div>
                         </div>
-                        <div class="stat-item">
-                            <div class="stat-value">${metrics.visitors.unique_last_minute}</div>
-                            <div class="stat-label">Last Minute</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">${metrics.visitors.last_hour}</div>
-                            <div class="stat-label">Last Hour</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">${metrics.visitors.today}</div>
-                            <div class="stat-label">Today</div>
+                        <div class="text-center p-3 bg-purple-50 rounded">
+                            <div class="text-2xl font-bold text-purple-600">${metrics.visitors.today}</div>
+                            <div class="text-xs text-gray-600 mt-1">Today</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Database -->
-                <div class="card">
-                    <div class="card-header">
-                        <span class="card-title">🗄️ Database</span>
-                        <span class="status-badge ${metrics.database.status}">
-                            ${metrics.database.status === 'success' ? 'OK' : 
-                              metrics.database.status === 'warning' ? 'Warning' : 'Error'}
+                <div class="bg-white shadow rounded-lg p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-medium text-gray-900">🗄️ Database</h3>
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-${getStatusColor(metrics.database.status)}-100 text-${getStatusColor(metrics.database.status)}-800">
+                            ${metrics.database.status === 'success' ? 'OK' : metrics.database.status === 'warning' ? 'Warning' : 'Error'}
                         </span>
                     </div>
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <div class="stat-value">${metrics.database.connections}</div>
-                            <div class="stat-label">Connections</div>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Connections</span>
+                            <span class="text-sm font-medium text-gray-900">${metrics.database.connections}</span>
                         </div>
-                        <div class="stat-item">
-                            <div class="stat-value">${formatNumber(metrics.database.total_queries)}</div>
-                            <div class="stat-label">Total Queries</div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Total Queries</span>
+                            <span class="text-sm font-medium text-gray-900">${formatNumber(metrics.database.total_queries)}</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Redis -->
-                <div class="card">
-                    <div class="card-header">
-                        <span class="card-title">💾 Redis</span>
-                        <span class="status-badge ${metrics.redis.status}">
-                            ${metrics.redis.status === 'success' ? 'OK' : 
-                              metrics.redis.status === 'warning' ? 'Warning' : 'Error'}
+                <div class="bg-white shadow rounded-lg p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-medium text-gray-900">💾 Redis</h3>
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-${getStatusColor(metrics.redis.status)}-100 text-${getStatusColor(metrics.redis.status)}-800">
+                            ${metrics.redis.status === 'success' ? 'OK' : metrics.redis.status === 'warning' ? 'Warning' : 'Error'}
                         </span>
                     </div>
-                    <div class="metric">
-                        <div class="metric-label">Memory Usage</div>
-                        <div class="metric-value">${metrics.redis.percentage.toFixed(1)}%</div>
-                        <div class="metric-detail">${metrics.redis.used_memory} / ${metrics.redis.max_memory}</div>
-                        <div class="progress-bar">
-                            <div class="progress-fill ${metrics.redis.status}" 
+                    <div class="mb-4">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm text-gray-600">Memory Usage</span>
+                            <span class="text-sm font-medium text-gray-900">${metrics.redis.percentage.toFixed(1)}%</span>
+                        </div>
+                        <div class="text-xs text-gray-500 mb-1">${metrics.redis.used_memory} / ${metrics.redis.max_memory}</div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-${getStatusColor(metrics.redis.status)} h-2 rounded-full" 
                                  style="width: ${metrics.redis.percentage}%"></div>
                         </div>
                     </div>
-                    <div class="metric">
-                        <div class="metric-label">Connected Clients</div>
-                        <div class="metric-value">${metrics.redis.connected_clients}</div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600">Connected Clients</span>
+                        <span class="text-sm font-medium text-gray-900">${metrics.redis.connected_clients}</span>
                     </div>
                 </div>
             </div>
         `;
     }
 
+    function getStatusColor(status) {
+        return status === 'success' ? 'green' : status === 'warning' ? 'yellow' : 'red';
+    }
+
     function showError(message) {
         const errorDiv = document.getElementById('errorMessage');
         errorDiv.textContent = message;
-        errorDiv.style.display = 'block';
+        errorDiv.classList.remove('hidden');
     }
 
     function updateLastUpdateTime() {

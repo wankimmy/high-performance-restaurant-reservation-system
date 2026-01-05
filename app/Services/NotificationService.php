@@ -1,0 +1,58 @@
+<?php
+
+namespace App\Services;
+
+use App\Mail\ReservationConfirmation;
+use App\Models\Reservation;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+
+class NotificationService
+{
+    public function __construct(
+        private WhatsAppService $whatsAppService
+    ) {}
+
+    /**
+     * Send reservation confirmation via email and WhatsApp
+     */
+    public function sendReservationConfirmation(Reservation $reservation): void
+    {
+        $reservationDetails = [
+            'id' => $reservation->id,
+            'customer_name' => $reservation->customer_name,
+            'customer_email' => $reservation->customer_email,
+            'customer_phone' => $reservation->customer_phone,
+            'table_name' => $reservation->table->name,
+            'reservation_date' => $reservation->reservation_date->format('F d, Y'),
+            'reservation_time' => $reservation->reservation_time->format('g:i A'),
+            'pax' => $reservation->pax,
+            'notes' => $reservation->notes,
+        ];
+
+        // Send email
+        try {
+            Mail::to($reservation->customer_email, $reservation->customer_name)
+                ->send(new ReservationConfirmation($reservation));
+        } catch (\Exception $e) {
+            Log::error('Failed to send reservation confirmation email', [
+                'reservation_id' => $reservation->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        // Send WhatsApp
+        try {
+            $this->whatsAppService->sendReservationConfirmation(
+                $reservation->customer_phone,
+                $reservationDetails
+            );
+        } catch (\Exception $e) {
+            Log::error('Failed to send WhatsApp confirmation', [
+                'reservation_id' => $reservation->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+}
+

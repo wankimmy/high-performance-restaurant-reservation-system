@@ -19,11 +19,18 @@ class Reservation extends Model
         'status',
         'ip_address',
         'user_agent',
+        'otp_session_id',
+        'otp_verified',
+        'has_arrived',
+        'arrived_at',
     ];
 
     protected $casts = [
         'reservation_date' => 'date',
         'pax' => 'integer',
+        'otp_verified' => 'boolean',
+        'has_arrived' => 'boolean',
+        'arrived_at' => 'datetime',
     ];
 
     public function table(): BelongsTo

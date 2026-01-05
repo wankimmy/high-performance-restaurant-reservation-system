@@ -14,6 +14,9 @@ class Kernel extends ConsoleKernel
         
         // Reset daily metrics at midnight
         $schedule->command('metrics:reset-daily')->daily();
+        
+        // Auto-release tables 1 hour after reservation time (runs every 5 minutes)
+        $schedule->command('tables:auto-release')->everyFiveMinutes();
     }
 
     protected function commands(): void

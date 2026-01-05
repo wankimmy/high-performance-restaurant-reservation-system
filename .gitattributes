@@ -1,0 +1,64 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Documents
+*.md text
+*.txt text
+*.pdf binary
+
+# Scripts
+*.sh text eol=lf
+*.bat text eol=crlf
+
+# PHP
+*.php text diff=php
+
+# Composer
+composer.json text
+composer.lock binary
+
+# Docker
+Dockerfile text
+docker-compose.yml text
+.dockerignore text
+
+# Config
+*.yaml text
+*.yml text
+*.json text
+*.xml text
+*.ini text
+*.conf text
+
+# Web
+*.html text diff=html
+*.css text
+*.js text
+
+# Archives
+*.zip binary
+*.tar binary
+*.gz binary
+
+# Images
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.gif binary
+*.ico binary
+*.svg text
+
+# Fonts
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+
+# Export ignore
+/.gitattributes export-ignore
+/.gitignore export-ignore
+/.github export-ignore
+/tests export-ignore
+/.env.example export-ignore
+/phpunit.xml export-ignore
+

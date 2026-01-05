@@ -10,7 +10,7 @@ class Authenticate extends Middleware
     protected function redirectTo(Request $request): ?string
     {
         if (!$request->expectsJson()) {
-            session()->flash('error', 'Please login to access the admin dashboard.');
+            // Redirect to Breeze login
             return route('login');
         }
         
