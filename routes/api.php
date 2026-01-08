@@ -21,7 +21,33 @@ Route::prefix('v1')->group(function () {
     });
     
     Route::get('/time-slots', function () {
-        $slots = \App\Models\TimeSlot::getTimeSlots();
+        $settings = RestaurantSetting::getSettings();
+        $slots = [];
+        
+        $openingTime = \Carbon\Carbon::parse($settings->opening_time);
+        $closingTime = \Carbon\Carbon::parse($settings->closing_time);
+        $interval = $settings->time_slot_interval ?? 30; // Default 30 minutes
+        
+        $currentTime = $openingTime->copy();
+        
+        while ($currentTime->lt($closingTime)) {
+            $endTime = $currentTime->copy()->addMinutes($interval);
+            
+            // Don't create a slot that goes past closing time
+            if ($endTime->gt($closingTime)) {
+                break;
+            }
+            
+            $slots[] = [
+                'start_time' => $currentTime->format('H:i'),
+                'end_time' => $endTime->format('H:i'),
+                'display' => $currentTime->format('g:i A'),
+                'value' => $currentTime->format('H:i'),
+            ];
+            
+            $currentTime->addMinutes($interval);
+        }
+        
         return response()->json([
             'success' => true,
             'time_slots' => $slots,

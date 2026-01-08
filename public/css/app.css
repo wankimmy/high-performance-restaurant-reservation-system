@@ -1,0 +1,118 @@
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Tailwind Form Styles */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+input[type="url"],
+textarea,
+select {
+    display: block;
+    width: 100%;
+    border-radius: 0.375rem;
+    border: 1px solid #d1d5db;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem;
+    line-height: 1.5rem;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus,
+input[type="time"]:focus,
+input[type="url"]:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+    height: 1rem;
+    width: 1rem;
+    color: #2563eb;
+    border: 1px solid #d1d5db;
+    border-radius: 0.25rem;
+}
+
+input[type="checkbox"]:focus,
+input[type="radio"]:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+/* Flatpickr Tailwind Styling */
+.flatpickr-calendar {
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.flatpickr-months {
+    background: #2563eb;
+    color: white;
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.flatpickr-month {
+    color: white;
+}
+
+.flatpickr-current-month {
+    color: white;
+}
+
+.flatpickr-weekdays {
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.flatpickr-weekday {
+    color: #374151;
+    font-weight: 500;
+}
+
+.flatpickr-day {
+    color: #374151;
+}
+
+.flatpickr-day:hover {
+    background: #eff6ff;
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange {
+    background: #2563eb;
+    color: white;
+    border-color: #2563eb;
+}
+
+.flatpickr-day.today {
+    border-color: #3b82f6;
+}
+
+.flatpickr-day.disabled,
+.flatpickr-day.flatpickr-disabled {
+    color: #d1d5db;
+    cursor: not-allowed;
+}

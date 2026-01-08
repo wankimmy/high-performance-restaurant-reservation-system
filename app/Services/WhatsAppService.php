@@ -11,7 +11,7 @@ class WhatsAppService
     /**
      * Send OTP via WhatsApp using Baileys service
      */
-    public function sendOtp(string $phoneNumber, string $otpCode): bool
+    public function sendOtp(string $phoneNumber, string $otpCode, ?string $customerName = null): bool
     {
         try {
             $settings = WhatsAppSetting::getSettings();
@@ -28,8 +28,24 @@ class WhatsAppService
             // Format phone number
             $formattedPhone = $this->formatPhoneNumber($phoneNumber);
             
-            // Message content
-            $message = "Your reservation OTP code is: {$otpCode}\n\nThis code will expire in 10 minutes.\n\nPlease do not share this code with anyone.";
+            // Get restaurant name from config
+            $restaurantName = config('app.name', 'Restaurant Reservation System');
+            
+            // Build friendly message
+            $message = "🍽️ *{$restaurantName}*\n\n";
+            
+            if ($customerName) {
+                $message .= "Hi {$customerName},\n\n";
+            } else {
+                $message .= "Hello,\n\n";
+            }
+            
+            $message .= "Thank you for making a reservation with us! 😊\n\n";
+            $message .= "Your verification code is:\n";
+            $message .= "*{$otpCode}*\n\n";
+            $message .= "This code will expire in 10 minutes.\n\n";
+            $message .= "Please do not share this code with anyone for security purposes.\n\n";
+            $message .= "We look forward to serving you! 🎉";
 
             // Send via Baileys service
             $response = Http::timeout(10)->post("{$settings->service_url}/api/send-message", [

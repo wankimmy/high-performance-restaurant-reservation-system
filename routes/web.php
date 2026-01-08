@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminReservationController;
-use App\Http\Controllers\Admin\MonitoringController;
 use App\Http\Controllers\Admin\RestaurantSettingsController;
 use App\Http\Controllers\Admin\TableController;
 use App\Http\Controllers\ProfileController;
@@ -57,14 +56,11 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::post('/reservations/{id}/request-arrival-verification', [AdminReservationController::class, 'requestArrivalVerification'])->name('reservations.request-arrival-verification');
     Route::post('/reservations/{id}/verify-arrival-otp', [AdminReservationController::class, 'verifyArrivalOtp'])->name('reservations.verify-arrival-otp');
     
-    // Settings
-    Route::get('/settings', [AdminReservationController::class, 'getSettings'])->name('settings.index');
-    Route::post('/settings/toggle', [AdminReservationController::class, 'toggleDateStatus'])->name('settings.toggle');
-    
-    // Restaurant Settings
+    // Restaurant Settings (includes date settings)
     Route::get('/restaurant-settings', [RestaurantSettingsController::class, 'index'])->name('restaurant-settings.index');
     Route::post('/restaurant-settings/update', [RestaurantSettingsController::class, 'update'])->name('restaurant-settings.update');
     Route::get('/restaurant-settings/get', [RestaurantSettingsController::class, 'getSettings'])->name('restaurant-settings.get');
+    Route::post('/restaurant-settings/toggle-date', [RestaurantSettingsController::class, 'toggleDateStatus'])->name('restaurant-settings.toggle-date');
     
     // WhatsApp Settings
     Route::get('/whatsapp-settings', [\App\Http\Controllers\Admin\WhatsAppSettingsController::class, 'index'])->name('whatsapp-settings.index');
@@ -78,9 +74,6 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::resource('tables', TableController::class)->except(['show']);
     Route::post('/tables/{table}/toggle-availability', [TableController::class, 'toggleAvailability'])->name('tables.toggle');
     
-    // Monitoring
-    Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
-    Route::get('/monitoring/metrics', [MonitoringController::class, 'getMetrics'])->name('monitoring.metrics');
 });
 
 // Profile routes (Breeze)

@@ -112,20 +112,6 @@ class AdminReservationController extends Controller
         ]);
     }
 
-    public function getSettings(Request $request)
-    {
-        $date = $request->get('date', now()->format('Y-m-d'));
-        
-        $settings = ReservationSetting::where('date', '>=', now()->format('Y-m-d'))
-            ->orderBy('date')
-            ->get();
-
-        if ($request->expectsJson()) {
-            return response()->json($settings);
-        }
-
-        return view('admin.settings.index', compact('settings'));
-    }
 
     /**
      * Request arrival verification - sends OTP to customer

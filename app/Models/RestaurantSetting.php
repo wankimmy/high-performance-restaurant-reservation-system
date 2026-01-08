@@ -42,8 +42,6 @@ class RestaurantSetting extends Model
     public static function clearCache(): void
     {
         Cache::forget('restaurant_settings');
-        // Also clear time slots cache when settings change
-        \App\Models\TimeSlot::clearCache();
     }
 
     /**

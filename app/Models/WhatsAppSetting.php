@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Cache;
 
 class WhatsAppSetting extends Model
 {
+    protected $table = 'whatsapp_settings';
+    
     protected $fillable = [
         'is_enabled',
         'service_url',

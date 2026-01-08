@@ -18,6 +18,8 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
+    # ImageMagick for QR code generation
+    libmagickwand-dev \
     # Compression
     zip \
     unzip \
@@ -37,6 +39,8 @@ RUN apt-get update && apt-get install -y \
     && apt-get install -y nodejs \
     # Install PHP extensions
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl \
+    # Install ImageMagick PHP extension
+    && pecl install imagick && docker-php-ext-enable imagick \
     # Clean up to reduce image size
     && rm -rf /var/lib/apt/lists/*
 

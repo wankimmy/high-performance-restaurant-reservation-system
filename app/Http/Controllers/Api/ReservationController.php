@@ -116,7 +116,7 @@ class ReservationController extends Controller
                 $otpData = $this->otpService->generateOtp($data['customer_phone'], $reservation->id);
                 
                 // Send OTP via WhatsApp
-                $this->whatsAppService->sendOtp($data['customer_phone'], $otpData['otp_code']);
+                $this->whatsAppService->sendOtp($data['customer_phone'], $otpData['otp_code'], $data['customer_name']);
 
                 // Update reservation with OTP session ID
                 $reservation->update(['otp_session_id' => $otpData['session_id']]);
@@ -335,8 +335,15 @@ class ReservationController extends Controller
         // Generate new OTP
         $otpData = $this->otpService->generateOtp($otp->phone_number, $otp->reservation_id);
         
+        // Get customer name from reservation if available
+        $customerName = null;
+        if ($otp->reservation_id) {
+            $reservation = Reservation::find($otp->reservation_id);
+            $customerName = $reservation->customer_name ?? null;
+        }
+        
         // Send OTP via WhatsApp
-        $this->whatsAppService->sendOtp($otp->phone_number, $otpData['otp_code']);
+        $this->whatsAppService->sendOtp($otp->phone_number, $otpData['otp_code'], $customerName);
 
         // Update reservation with new session ID
         if ($otp->reservation_id) {

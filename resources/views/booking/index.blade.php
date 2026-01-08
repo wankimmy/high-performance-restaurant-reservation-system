@@ -3,7 +3,7 @@
 @section('title', 'Restaurant Reservation')
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
+<div class="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-2xl mx-auto">
         <!-- Alert Messages -->
         <div id="message" class="hidden mb-6 p-4 rounded-lg" role="alert"></div>
@@ -22,22 +22,23 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Date & Time <span class="text-red-500">*</span>
                         </label>
-                        <div class="row g-2">
-                            <div class="col-md-8">
-                                <div class="input-group">
-                                    <span class="input-group-text">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div class="md:col-span-2">
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
-                                    </span>
+                                    </div>
                                     <input type="text" id="reservation_date" name="reservation_date" 
-                                           class="form-control" 
+                                           class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" 
                                            placeholder="Select date" required>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div>
                                 <select id="reservation_time" name="reservation_time" 
-                                        class="form-select" required>
+                                        class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" 
+                                        required>
                                     <option value="">Select time</option>
                                     <!-- Time slots will be dynamically loaded -->
                                 </select>
@@ -59,9 +60,8 @@
                             <select id="pax" name="pax" 
                                     class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" 
                                     required>
-                                <option value="">Select number of guests</option>
                                 @for($i = 1; $i <= 20; $i++)
-                                <option value="{{ $i }}">{{ $i }} {{ $i == 1 ? 'person' : 'people' }}</option>
+                                <option value="{{ $i }}">{{ $i }}</option>
                                 @endfor
                             </select>
                         </div>
@@ -284,51 +284,43 @@
     async function initDateTimePicker() {
         const closedDatesList = await fetchClosedDates();
         const today = new Date();
-        today.setHours(0, 0, 0, 0); // Set to start of today
+        today.setHours(0, 0, 0, 0);
         
-        // Set minimum date to today (disable all past dates)
-        const minDate = today;
-        
-        // No maximum date - show all future dates
-        // Convert closed dates to array of Date objects for bootstrap-datepicker
-        const disabledDates = closedDatesList.map(date => {
-            const dateObj = new Date(date + 'T00:00:00');
-            dateObj.setHours(0, 0, 0, 0);
-            return dateObj;
-        });
+        // Convert closed dates to array of date strings for Flatpickr
+        const disabledDates = closedDatesList.map(date => date);
 
-        // Initialize Bootstrap Datepicker
-        $('#reservation_date').datepicker({
-            format: 'MM dd, yyyy',
-            startDate: minDate, // Disable all dates before today
-            endDate: false, // No end date - show all future dates
-            datesDisabled: disabledDates, // Disable dates closed by admin
-            autoclose: true,
-            todayHighlight: true,
-            weekStart: 0,
-            orientation: 'bottom auto',
-            enableOnReadonly: false,
-            clearBtn: false
-        }).on('changeDate', function(e) {
-            const selected = e.date;
-            if (selected) {
-                // Format date as YYYY-MM-DD for API
-                const year = selected.getFullYear();
-                const month = String(selected.getMonth() + 1).padStart(2, '0');
-                const day = String(selected.getDate()).padStart(2, '0');
-                const dateStr = `${year}-${month}-${day}`;
-                selectedDate = dateStr;
-                
-                // Clear tables when date changes
-                availabilityChecked = false;
-                document.getElementById('tablesGrid').innerHTML = '';
-                document.getElementById('selected_table_id').value = '';
-                document.getElementById('customerInfo').classList.add('hidden');
-                selectedTableData = null;
-                
-                // Trigger availability check if time and pax are also selected
-                if (selectedTime && selectedPax) {
-                    checkAvailability();
+        // Initialize Flatpickr (Tailwind-compatible datepicker)
+        const dateInput = document.getElementById('reservation_date');
+        const flatpickrInstance = flatpickr(dateInput, {
+            minDate: 'today', // Disable all dates before today
+            disable: disabledDates, // Disable dates closed by admin
+            dateFormat: 'M d, Y',
+            altInput: true,
+            altFormat: 'M d, Y',
+            allowInput: false,
+            clickOpens: true,
+            defaultDate: null,
+            onChange: function(selectedDates, dateStr, instance) {
+                if (selectedDates.length > 0) {
+                    const selected = selectedDates[0];
+                    // Format date as YYYY-MM-DD for API
+                    const year = selected.getFullYear();
+                    const month = String(selected.getMonth() + 1).padStart(2, '0');
+                    const day = String(selected.getDate()).padStart(2, '0');
+                    const dateStr = `${year}-${month}-${day}`;
+                    selectedDate = dateStr;
+                    
+                    // Clear tables when date changes
+                    availabilityChecked = false;
+                    document.getElementById('tablesGrid').innerHTML = '';
+                    document.getElementById('selected_table_id').value = '';
+                    document.getElementById('customerInfo').classList.add('hidden');
+                    selectedTableData = null;
+                    
+                    // Trigger availability check if time and pax are also selected
+                    if (selectedTime && selectedPax) {
+                        checkAvailability();
+                    }
                 }
             }
         });
@@ -401,11 +393,9 @@
         tables.forEach(table => {
             const isPerfectFit = table.capacity == selectedPax;
             
-            // Create Bootstrap card element
+            // Create Tailwind card element
             const card = document.createElement('div');
-            card.className = 'card table-box h-100';
-            card.style.cursor = 'pointer';
-            card.style.transition = 'all 0.3s ease';
+            card.className = 'table-box bg-white rounded-lg border-2 p-4 text-center cursor-pointer transition-all duration-300';
             card.dataset.tableId = table.id;
             card.dataset.tableName = table.name;
             card.dataset.tableCapacity = table.capacity;
@@ -413,54 +403,44 @@
             
             // Set initial border and background
             if (isPerfectFit) {
-                card.classList.add('border-success', 'bg-light');
-                card.style.borderWidth = '2px';
+                card.classList.add('border-green-500', 'bg-green-50');
             } else {
-                card.classList.add('border-secondary');
-                card.style.borderWidth = '2px';
+                card.classList.add('border-gray-300');
             }
-            
-            // Card body
-            const cardBody = document.createElement('div');
-            cardBody.className = 'card-body text-center p-3';
             
             // Table name
             const tableName = document.createElement('h6');
-            tableName.className = 'card-title mb-2 fw-bold';
+            tableName.className = 'text-lg font-semibold mb-2 text-gray-900';
             tableName.textContent = table.name;
             
             // Capacity
             const capacity = document.createElement('p');
-            capacity.className = 'card-text mb-1 small text-muted';
+            capacity.className = 'text-sm text-gray-600 mb-2';
             capacity.textContent = `Capacity: ${table.capacity}`;
             
             // Perfect fit badge
             if (isPerfectFit) {
                 const badge = document.createElement('span');
-                badge.className = 'badge bg-success mt-1';
+                badge.className = 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800';
                 badge.textContent = 'Perfect fit!';
-                cardBody.appendChild(tableName);
-                cardBody.appendChild(capacity);
-                cardBody.appendChild(badge);
+                card.appendChild(tableName);
+                card.appendChild(capacity);
+                card.appendChild(badge);
             } else {
-                cardBody.appendChild(tableName);
-                cardBody.appendChild(capacity);
+                card.appendChild(tableName);
+                card.appendChild(capacity);
             }
-            
-            card.appendChild(cardBody);
             
             // Hover effect
             card.addEventListener('mouseenter', function() {
-                if (!this.classList.contains('border-primary')) {
-                    this.style.transform = 'translateY(-2px)';
-                    this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                if (!this.classList.contains('border-blue-500')) {
+                    this.classList.add('shadow-md', '-translate-y-1');
                 }
             });
             
             card.addEventListener('mouseleave', function() {
-                if (!this.classList.contains('border-primary')) {
-                    this.style.transform = 'translateY(0)';
-                    this.style.boxShadow = '';
+                if (!this.classList.contains('border-blue-500')) {
+                    this.classList.remove('shadow-md', '-translate-y-1');
                 }
             });
             
@@ -469,67 +449,55 @@
                 // Remove selected state from all tables
                 document.querySelectorAll('.table-box').forEach(box => {
                     const wasPerfectFit = box.dataset.isPerfectFit === 'true';
-                    box.classList.remove('border-primary', 'bg-primary', 'border-success', 'bg-light', 'border-secondary');
-                    box.style.borderWidth = '2px';
-                    box.style.transform = 'translateY(0)';
-                    box.style.boxShadow = '';
+                    box.classList.remove('border-blue-500', 'bg-blue-500', 'border-green-500', 'bg-green-50', 'border-gray-300', 'shadow-lg');
+                    box.classList.remove('shadow-md', '-translate-y-1');
                     
                     // Restore original text colors
-                    const cardBody = box.querySelector('.card-body');
-                    if (cardBody) {
-                        cardBody.classList.remove('text-white');
-                        const cardTitle = cardBody.querySelector('.card-title');
-                        const cardText = cardBody.querySelector('.card-text');
-                        const badge = cardBody.querySelector('.badge');
-                        
-                        if (cardTitle) {
-                            cardTitle.classList.remove('text-white');
-                            cardTitle.classList.add('text-dark');
-                        }
-                        if (cardText) {
-                            cardText.classList.remove('text-white');
-                            cardText.classList.add('text-muted');
-                        }
-                        if (badge) {
-                            badge.classList.remove('bg-light', 'text-primary');
-                            badge.classList.add('bg-success');
-                        }
+                    const title = box.querySelector('h6');
+                    const text = box.querySelector('p');
+                    const badge = box.querySelector('span');
+                    
+                    if (title) {
+                        title.classList.remove('text-white');
+                        title.classList.add('text-gray-900');
+                    }
+                    if (text) {
+                        text.classList.remove('text-white');
+                        text.classList.add('text-gray-600');
+                    }
+                    if (badge) {
+                        badge.classList.remove('bg-white', 'text-blue-600');
+                        badge.classList.add('bg-green-100', 'text-green-800');
                     }
                     
                     // Restore original styling
                     if (wasPerfectFit) {
-                        box.classList.add('border-success', 'bg-light');
+                        box.classList.add('border-green-500', 'bg-green-50');
                     } else {
-                        box.classList.add('border-secondary');
+                        box.classList.add('border-gray-300');
                     }
                 });
                 
                 // Add selected state to clicked table
-                this.classList.remove('border-success', 'bg-light', 'border-secondary');
-                this.classList.add('border-primary', 'bg-primary');
-                this.style.borderWidth = '3px';
-                this.style.boxShadow = '0 4px 12px rgba(13, 110, 253, 0.3)';
+                this.classList.remove('border-green-500', 'bg-green-50', 'border-gray-300');
+                this.classList.add('border-blue-500', 'bg-blue-500', 'shadow-lg');
                 
-                // Update text colors in card body for selected state
-                const cardBody = this.querySelector('.card-body');
-                if (cardBody) {
-                    cardBody.classList.add('text-white');
-                    const cardTitle = cardBody.querySelector('.card-title');
-                    const cardText = cardBody.querySelector('.card-text');
-                    const badge = cardBody.querySelector('.badge');
-                    
-                    if (cardTitle) {
-                        cardTitle.classList.remove('text-dark');
-                        cardTitle.classList.add('text-white');
-                    }
-                    if (cardText) {
-                        cardText.classList.remove('text-muted');
-                        cardText.classList.add('text-white');
-                    }
-                    if (badge) {
-                        badge.classList.remove('bg-success');
-                        badge.classList.add('bg-light', 'text-primary');
-                    }
+                // Update text colors for selected state
+                const title = this.querySelector('h6');
+                const text = this.querySelector('p');
+                const badge = this.querySelector('span');
+                
+                if (title) {
+                    title.classList.remove('text-gray-900');
+                    title.classList.add('text-white');
+                }
+                if (text) {
+                    text.classList.remove('text-gray-600');
+                    text.classList.add('text-white');
+                }
+                if (badge) {
+                    badge.classList.remove('bg-green-100', 'text-green-800');
+                    badge.classList.add('bg-white', 'text-blue-600');
                 }
                 
                 // Store selected table data
