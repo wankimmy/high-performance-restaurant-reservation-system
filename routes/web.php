@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminReservationController;
 use App\Http\Controllers\Admin\MonitoringController;
+use App\Http\Controllers\Admin\RestaurantSettingsController;
 use App\Http\Controllers\Admin\TableController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Http\Request;
@@ -53,11 +54,25 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     // Reservations
     Route::get('/reservations', [AdminReservationController::class, 'index'])->name('reservations.index');
     Route::post('/reservations/{id}/cancel', [AdminReservationController::class, 'cancel'])->name('reservations.cancel');
-    Route::post('/reservations/{id}/mark-arrived', [AdminReservationController::class, 'markAsArrived'])->name('reservations.mark-arrived');
+    Route::post('/reservations/{id}/request-arrival-verification', [AdminReservationController::class, 'requestArrivalVerification'])->name('reservations.request-arrival-verification');
+    Route::post('/reservations/{id}/verify-arrival-otp', [AdminReservationController::class, 'verifyArrivalOtp'])->name('reservations.verify-arrival-otp');
     
     // Settings
     Route::get('/settings', [AdminReservationController::class, 'getSettings'])->name('settings.index');
     Route::post('/settings/toggle', [AdminReservationController::class, 'toggleDateStatus'])->name('settings.toggle');
+    
+    // Restaurant Settings
+    Route::get('/restaurant-settings', [RestaurantSettingsController::class, 'index'])->name('restaurant-settings.index');
+    Route::post('/restaurant-settings/update', [RestaurantSettingsController::class, 'update'])->name('restaurant-settings.update');
+    Route::get('/restaurant-settings/get', [RestaurantSettingsController::class, 'getSettings'])->name('restaurant-settings.get');
+    
+    // WhatsApp Settings
+    Route::get('/whatsapp-settings', [\App\Http\Controllers\Admin\WhatsAppSettingsController::class, 'index'])->name('whatsapp-settings.index');
+    Route::get('/whatsapp-settings/status', [\App\Http\Controllers\Admin\WhatsAppSettingsController::class, 'getStatus'])->name('whatsapp-settings.status');
+    Route::get('/whatsapp-settings/qr', [\App\Http\Controllers\Admin\WhatsAppSettingsController::class, 'getQrCode'])->name('whatsapp-settings.qr');
+    Route::post('/whatsapp-settings/connect', [\App\Http\Controllers\Admin\WhatsAppSettingsController::class, 'connect'])->name('whatsapp-settings.connect');
+    Route::post('/whatsapp-settings/disconnect', [\App\Http\Controllers\Admin\WhatsAppSettingsController::class, 'disconnect'])->name('whatsapp-settings.disconnect');
+    Route::post('/whatsapp-settings/update', [\App\Http\Controllers\Admin\WhatsAppSettingsController::class, 'update'])->name('whatsapp-settings.update');
     
     // Tables
     Route::resource('tables', TableController::class)->except(['show']);

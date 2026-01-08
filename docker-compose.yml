@@ -38,6 +38,8 @@ services:
       - DB_USERNAME=${DB_USERNAME:-restaurant_user}
       - DB_PASSWORD=${DB_PASSWORD:-restaurant_password}
       - REDIS_HOST=redis
+      # Server type: 'nginx' (default) or 'swoole' (Laravel Octane)
+      - SERVER_TYPE=${SERVER_TYPE:-nginx}
 
   # =============================================================================
   # MySQL Database
@@ -135,6 +137,56 @@ services:
       mysql:
         condition: service_healthy
 
+  # =============================================================================
+  # WhatsApp Baileys Service
+  # Node.js service for WhatsApp Web integration using Baileys
+  # =============================================================================
+  whatsapp-service:
+    build:
+      context: ./whatsapp-service
+      dockerfile: Dockerfile
+    container_name: restaurant_whatsapp
+    restart: unless-stopped
+    working_dir: /app
+    
+    # Expose port 3001
+    ports:
+      - "3001:3001"
+    
+    # Persistent storage for auth state
+    volumes:
+      - whatsapp_auth:/app/auth_state
+    
+    networks:
+      - restaurant_network
+    
+    environment:
+      - WHATSAPP_PORT=3001
+
+  # =============================================================================
+  # Stress Test Container
+  # Load testing tools: wrk, Apache Bench (ab), hey
+  # Usage: docker-compose run --rm stress-test [command]
+  # =============================================================================
+  stress-test:
+    build:
+      context: .
+      dockerfile: docker/stress-test/Dockerfile
+    container_name: restaurant_stress_test
+    restart: "no"  # Don't auto-restart, run on-demand
+    working_dir: /stress-tests
+    
+    networks:
+      - restaurant_network
+    
+    # Wait for app to be ready before running tests
+    depends_on:
+      app:
+        condition: service_started
+    
+    # Keep container running for interactive use
+    command: tail -f /dev/null
+
 # =============================================================================
 # Networks
 # =============================================================================
@@ -151,3 +203,5 @@ volumes:
     driver: local  # Database files persist here
   redis_data:
     driver: local  # Redis snapshots persist here
+  whatsapp_auth:
+    driver: local  # WhatsApp auth state persists here

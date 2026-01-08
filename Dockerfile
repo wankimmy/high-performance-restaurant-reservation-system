@@ -22,6 +22,8 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     libzip-dev \
+    # Brotli compression (for Swoole)
+    libbrotli-dev \
     # Database drivers
     libpq-dev \
     # Internationalization
@@ -43,6 +45,10 @@ RUN apt-get update && apt-get install -y \
 # =============================================================================
 # Redis extension for caching and queue
 RUN pecl install redis && docker-php-ext-enable redis
+
+# Swoole extension for Laravel Octane
+# Install non-interactively: disable sockets (no), enable brotli (yes), disable others (no)
+RUN printf "no\nyes\nno\nno\nno\nno\nno\nno\nno\nno\nno\nno\nno\n" | pecl install swoole && docker-php-ext-enable swoole
 
 # =============================================================================
 # Install Composer (PHP package manager)
@@ -72,8 +78,10 @@ COPY . /var/www/html
 # =============================================================================
 COPY docker/scripts/startup.sh /usr/local/bin/startup.sh
 COPY docker/scripts/fix-permissions.sh /usr/local/bin/fix-permissions.sh
+COPY docker/scripts/configure-supervisor.sh /usr/local/bin/configure-supervisor.sh
 RUN chmod +x /usr/local/bin/startup.sh
 RUN chmod +x /usr/local/bin/fix-permissions.sh
+RUN chmod +x /usr/local/bin/configure-supervisor.sh
 
 # =============================================================================
 # Set Permissions & Create Required Directories

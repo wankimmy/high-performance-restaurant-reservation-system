@@ -13,6 +13,7 @@ class Reservation extends Model
         'customer_email',
         'customer_phone',
         'pax',
+        'deposit_amount',
         'reservation_date',
         'reservation_time',
         'notes',
@@ -28,6 +29,7 @@ class Reservation extends Model
     protected $casts = [
         'reservation_date' => 'date',
         'pax' => 'integer',
+        'deposit_amount' => 'decimal:2',
         'otp_verified' => 'boolean',
         'has_arrived' => 'boolean',
         'arrived_at' => 'datetime',

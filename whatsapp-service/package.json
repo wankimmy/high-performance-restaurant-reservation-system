@@ -1,0 +1,20 @@
+{
+  "name": "whatsapp-baileys-service",
+  "version": "1.0.0",
+  "description": "WhatsApp service using Baileys for Laravel HPBS",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.6.0",
+    "@hapi/boom": "^10.0.1",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "qrcode-terminal": "^0.12.0",
+    "pino": "^8.16.0",
+    "pino-pretty": "^10.2.3"
+  }
+}

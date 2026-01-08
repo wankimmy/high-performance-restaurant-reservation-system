@@ -128,9 +128,9 @@ class AdminReservationController extends Controller
     }
 
     /**
-     * Mark reservation as arrived and send OTP
+     * Request arrival verification - sends OTP to customer
      */
-    public function markAsArrived(Request $request, int $id): JsonResponse
+    public function requestArrivalVerification(Request $request, int $id): JsonResponse
     {
         $reservation = Reservation::with('table')->findOrFail($id);
 
@@ -144,7 +144,7 @@ class AdminReservationController extends Controller
         if ($reservation->status !== 'confirmed') {
             return response()->json([
                 'success' => false,
-                'message' => 'Only confirmed reservations can be marked as arrived',
+                'message' => 'Only confirmed reservations can be verified for arrival',
             ], 400);
         }
 
@@ -164,7 +164,78 @@ class AdminReservationController extends Controller
             ]
         );
 
-        // Mark as arrived
+        return response()->json([
+            'success' => true,
+            'message' => 'OTP sent to customer WhatsApp. Please ask customer to show the OTP code.',
+            'session_id' => $otpData['session_id'],
+        ]);
+    }
+
+    /**
+     * Verify arrival OTP entered by admin
+     */
+    public function verifyArrivalOtp(Request $request, int $id): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'otp_code' => 'required|string|size:6',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $reservation = Reservation::with('table')->findOrFail($id);
+
+        if ($reservation->has_arrived) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Customer has already been marked as arrived',
+            ], 400);
+        }
+
+        // Find the latest OTP for this reservation
+        $otp = \App\Models\Otp::where('reservation_id', $reservation->id)
+            ->where('is_verified', false)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if (!$otp) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No pending OTP found. Please request verification first.',
+            ], 400);
+        }
+
+        // Verify OTP
+        if ($otp->isExpired()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'OTP has expired. Please request a new one.',
+            ], 400);
+        }
+
+        if ($otp->otp_code !== $request->otp_code) {
+            $otp->increment('attempts');
+            
+            if ($otp->attempts >= 5) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Too many failed attempts. Please request a new OTP.',
+                ], 400);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid OTP code. Please try again.',
+            ], 400);
+        }
+
+        // Mark OTP as verified and mark reservation as arrived
+        $otp->update(['is_verified' => true]);
         $reservation->update([
             'has_arrived' => true,
             'arrived_at' => now(),
@@ -172,7 +243,7 @@ class AdminReservationController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Customer marked as arrived. OTP sent to WhatsApp for verification.',
+            'message' => 'Customer arrival verified successfully.',
         ]);
     }
 }

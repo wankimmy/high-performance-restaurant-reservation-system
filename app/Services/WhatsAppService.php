@@ -2,59 +2,58 @@
 
 namespace App\Services;
 
+use App\Models\WhatsAppSetting;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class WhatsAppService
 {
     /**
-     * Send OTP via WhatsApp
-     * 
-     * Note: This is a placeholder implementation. You'll need to integrate with
-     * a WhatsApp Business API provider like Twilio, WhatsApp Business API, or similar.
-     * 
-     * For development/testing, you can use:
-     * - Twilio WhatsApp API
-     * - WhatsApp Business API (Meta)
-     * - Other third-party services
+     * Send OTP via WhatsApp using Baileys service
      */
     public function sendOtp(string $phoneNumber, string $otpCode): bool
     {
         try {
-            // Format phone number (remove + and spaces, ensure it starts with country code)
+            $settings = WhatsAppSetting::getSettings();
+            
+            // Check if WhatsApp is enabled and connected
+            if (!$settings->is_enabled || !$settings->isConnected()) {
+                Log::warning('WhatsApp not enabled or not connected', [
+                    'is_enabled' => $settings->is_enabled,
+                    'status' => $settings->status,
+                ]);
+                return false;
+            }
+
+            // Format phone number
             $formattedPhone = $this->formatPhoneNumber($phoneNumber);
             
             // Message content
             $message = "Your reservation OTP code is: {$otpCode}\n\nThis code will expire in 10 minutes.\n\nPlease do not share this code with anyone.";
 
-            // TODO: Replace with actual WhatsApp API integration
-            // Example with Twilio WhatsApp API:
-            /*
-            $response = Http::withBasicAuth(
-                config('services.twilio.account_sid'),
-                config('services.twilio.auth_token')
-            )->post("https://api.twilio.com/2010-04-01/Accounts/{account_sid}/Messages.json", [
-                'From' => 'whatsapp:' . config('services.twilio.whatsapp_from'),
-                'To' => 'whatsapp:' . $formattedPhone,
-                'Body' => $message,
-            ]);
-            */
-
-            // For now, log the OTP (remove in production)
-            Log::info('WhatsApp OTP sent', [
+            // Send via Baileys service
+            $response = Http::timeout(10)->post("{$settings->service_url}/api/send-message", [
                 'phone' => $formattedPhone,
-                'otp' => $otpCode,
                 'message' => $message,
             ]);
 
-            // In development, you can use a service like:
-            // - https://www.twilio.com/whatsapp
-            // - https://developers.facebook.com/docs/whatsapp
-            // - https://www.messagebird.com/en/whatsapp-api
-            
-            // For testing purposes, return true
-            // In production, check the API response and return accordingly
-            return true;
+            if ($response->successful()) {
+                $data = $response->json();
+                
+                if ($data['success'] ?? false) {
+                    Log::info('WhatsApp OTP sent successfully', [
+                        'phone' => $formattedPhone,
+                        'otp' => $otpCode,
+                    ]);
+                    return true;
+                }
+            }
+
+            Log::error('Failed to send WhatsApp OTP', [
+                'phone' => $formattedPhone,
+                'response' => $response->body(),
+            ]);
+            return false;
 
         } catch (\Exception $e) {
             Log::error('Failed to send WhatsApp OTP', [
@@ -71,6 +70,13 @@ class WhatsAppService
     public function sendReservationConfirmation(string $phoneNumber, array $reservationDetails): bool
     {
         try {
+            $settings = WhatsAppSetting::getSettings();
+            
+            if (!$settings->is_enabled || !$settings->isConnected()) {
+                Log::warning('WhatsApp not enabled or not connected for confirmation');
+                return false;
+            }
+
             $formattedPhone = $this->formatPhoneNumber($phoneNumber);
             
             $message = "✅ Reservation Confirmed!\n\n";
@@ -82,13 +88,20 @@ class WhatsAppService
             $message .= "Guests: {$reservationDetails['pax']}\n\n";
             $message .= "Thank you for your reservation!";
 
-            // TODO: Implement actual WhatsApp API call
-            Log::info('WhatsApp reservation confirmation sent', [
+            $response = Http::timeout(10)->post("{$settings->service_url}/api/send-message", [
                 'phone' => $formattedPhone,
-                'reservation_id' => $reservationDetails['id'],
+                'message' => $message,
             ]);
 
-            return true;
+            if ($response->successful() && ($response->json()['success'] ?? false)) {
+                Log::info('WhatsApp reservation confirmation sent', [
+                    'phone' => $formattedPhone,
+                    'reservation_id' => $reservationDetails['id'],
+                ]);
+                return true;
+            }
+
+            return false;
         } catch (\Exception $e) {
             Log::error('Failed to send WhatsApp confirmation', [
                 'phone' => $phoneNumber,
@@ -104,6 +117,13 @@ class WhatsAppService
     public function sendArrivalOtp(string $phoneNumber, string $otpCode, array $reservationDetails): bool
     {
         try {
+            $settings = WhatsAppSetting::getSettings();
+            
+            if (!$settings->is_enabled || !$settings->isConnected()) {
+                Log::warning('WhatsApp not enabled or not connected for arrival OTP');
+                return false;
+            }
+
             $formattedPhone = $this->formatPhoneNumber($phoneNumber);
             
             $message = "🏨 Arrival Verification\n\n";
@@ -115,14 +135,21 @@ class WhatsAppService
             $message .= "Time: {$reservationDetails['reservation_time']}\n\n";
             $message .= "This code will expire in 10 minutes.";
 
-            // TODO: Implement actual WhatsApp API call
-            Log::info('WhatsApp arrival OTP sent', [
+            $response = Http::timeout(10)->post("{$settings->service_url}/api/send-message", [
                 'phone' => $formattedPhone,
-                'otp' => $otpCode,
-                'reservation_id' => $reservationDetails['id'],
+                'message' => $message,
             ]);
 
-            return true;
+            if ($response->successful() && ($response->json()['success'] ?? false)) {
+                Log::info('WhatsApp arrival OTP sent', [
+                    'phone' => $formattedPhone,
+                    'otp' => $otpCode,
+                    'reservation_id' => $reservationDetails['id'],
+                ]);
+                return true;
+            }
+
+            return false;
         } catch (\Exception $e) {
             Log::error('Failed to send WhatsApp arrival OTP', [
                 'phone' => $phoneNumber,

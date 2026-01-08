@@ -39,18 +39,7 @@
                                 <select id="reservation_time" name="reservation_time" 
                                         class="form-select" required>
                                     <option value="">Select time</option>
-                                    <option value="16:00">4:00 PM</option>
-                                    <option value="16:30">4:30 PM</option>
-                                    <option value="17:00">5:00 PM</option>
-                                    <option value="17:30">5:30 PM</option>
-                                    <option value="18:00">6:00 PM</option>
-                                    <option value="18:30">6:30 PM</option>
-                                    <option value="19:00">7:00 PM</option>
-                                    <option value="19:30">7:30 PM</option>
-                                    <option value="20:00">8:00 PM</option>
-                                    <option value="20:30">8:30 PM</option>
-                                    <option value="21:00">9:00 PM</option>
-                                    <option value="21:30">9:30 PM</option>
+                                    <!-- Time slots will be dynamically loaded -->
                                 </select>
                             </div>
                         </div>
@@ -102,6 +91,22 @@
                                   placeholder="Any special requests or dietary requirements..."></textarea>
                         <div class="mt-1 text-sm text-gray-500 text-right">
                             <span id="charCount">0</span>/100 characters
+                        </div>
+                    </div>
+
+                    <!-- Deposit Information -->
+                    <div id="depositInfo" class="hidden pt-4 border-t border-gray-200">
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">Deposit Required</p>
+                                    <p class="text-xs text-gray-500 mt-1">This deposit will be charged per person</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-2xl font-bold text-indigo-600" id="depositAmount">-</p>
+                                    <p class="text-xs text-gray-500 mt-1" id="depositBreakdown"></p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -160,7 +165,107 @@
     let selectedPax = '';
     let closedDates = [];
     let availabilityChecked = false;
+    let depositPerPax = 0;
+    let timeSlots = [];
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+    // Fetch restaurant settings on page load
+    async function fetchRestaurantSettings() {
+        try {
+            const response = await fetch(`${API_BASE}/restaurant-settings`);
+            const data = await response.json();
+            if (data.success && data.settings) {
+                depositPerPax = parseFloat(data.settings.deposit_per_pax) || 0;
+                updateDepositDisplay();
+            }
+        } catch (error) {
+            console.error('Error fetching restaurant settings:', error);
+        }
+    }
+
+    // Fetch time slots on page load
+    async function fetchTimeSlots() {
+        try {
+            const response = await fetch(`${API_BASE}/time-slots`);
+            const data = await response.json();
+            if (data.success && data.time_slots) {
+                timeSlots = data.time_slots;
+                populateTimeSlots();
+            }
+        } catch (error) {
+            console.error('Error fetching time slots:', error);
+            // Fallback to default time slots if API fails
+            populateDefaultTimeSlots();
+        }
+    }
+
+    // Populate time slots dropdown
+    function populateTimeSlots() {
+        const timeSelect = document.getElementById('reservation_time');
+        // Clear existing options except the first one
+        timeSelect.innerHTML = '<option value="">Select time</option>';
+        
+        if (timeSlots.length === 0) {
+            populateDefaultTimeSlots();
+            return;
+        }
+
+        timeSlots.forEach(slot => {
+            const option = document.createElement('option');
+            option.value = slot.value || slot.start_time;
+            option.textContent = slot.display || slot.start_time;
+            timeSelect.appendChild(option);
+        });
+    }
+
+    // Fallback default time slots
+    function populateDefaultTimeSlots() {
+        const timeSelect = document.getElementById('reservation_time');
+        const defaultSlots = [
+            { value: '16:00', display: '4:00 PM' },
+            { value: '16:30', display: '4:30 PM' },
+            { value: '17:00', display: '5:00 PM' },
+            { value: '17:30', display: '5:30 PM' },
+            { value: '18:00', display: '6:00 PM' },
+            { value: '18:30', display: '6:30 PM' },
+            { value: '19:00', display: '7:00 PM' },
+            { value: '19:30', display: '7:30 PM' },
+            { value: '20:00', display: '8:00 PM' },
+            { value: '20:30', display: '8:30 PM' },
+            { value: '21:00', display: '9:00 PM' },
+            { value: '21:30', display: '9:30 PM' },
+        ];
+
+        defaultSlots.forEach(slot => {
+            const option = document.createElement('option');
+            option.value = slot.value;
+            option.textContent = slot.display;
+            timeSelect.appendChild(option);
+        });
+    }
+
+    // Calculate and display deposit
+    function updateDepositDisplay() {
+        const depositInfo = document.getElementById('depositInfo');
+        const depositAmount = document.getElementById('depositAmount');
+        const depositBreakdown = document.getElementById('depositBreakdown');
+        
+        // Only show deposit if we have both pax selected and deposit per pax from settings
+        if (selectedPax && depositPerPax > 0) {
+            const totalDeposit = depositPerPax * parseInt(selectedPax);
+            depositAmount.textContent = `RM ${totalDeposit.toFixed(2)}`;
+            depositBreakdown.textContent = `RM ${depositPerPax.toFixed(2)} × ${selectedPax} ${selectedPax == 1 ? 'person' : 'people'}`;
+            depositInfo.classList.remove('hidden');
+        } else if (selectedPax && depositPerPax === 0) {
+            // If deposit is 0 from settings, hide the deposit info
+            depositInfo.classList.add('hidden');
+        } else {
+            // No pax selected yet, keep hidden
+            depositInfo.classList.add('hidden');
+            depositAmount.textContent = '-';
+            depositBreakdown.textContent = '';
+        }
+    }
 
     async function fetchClosedDates() {
         try {
@@ -437,8 +542,9 @@
                 // Set selected table ID
                 document.getElementById('selected_table_id').value = table.id;
                 
-                // Show customer info
+                // Show customer info and deposit
                 document.getElementById('customerInfo').classList.remove('hidden');
+                updateDepositDisplay();
                 document.getElementById('customerInfo').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             });
             
@@ -453,7 +559,11 @@
         document.getElementById('tablesGrid').innerHTML = '';
         document.getElementById('selected_table_id').value = '';
         document.getElementById('customerInfo').classList.add('hidden');
+        document.getElementById('depositInfo').classList.add('hidden');
         selectedTableData = null;
+
+        // Update deposit display
+        updateDepositDisplay();
 
         if (selectedDate && selectedTime && selectedPax) {
             checkAvailability();
@@ -536,5 +646,7 @@
     }
 
     initDateTimePicker();
+    fetchRestaurantSettings();
+    fetchTimeSlots();
 </script>
 @endpush

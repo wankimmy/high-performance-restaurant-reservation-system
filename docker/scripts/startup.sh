@@ -145,11 +145,47 @@ echo "✅ Application ready!"
 echo "📌 Access at: http://localhost:8000"
 echo "🔐 Admin: admin@restaurant.com / password"
 
-# Start supervisor (automatically starts: PHP-FPM, Nginx, Queue Workers, and Scheduler)
+# Install Octane and Pulse if not already installed
+if [ ! -f "config/octane.php" ]; then
+    echo "📦 Installing Laravel Octane..."
+    php artisan octane:install --server=swoole --no-interaction || echo "Octane install skipped"
+    # Fix ownership after installation
+    chown -R www-data:www-data /var/www/html
+fi
+
+if [ ! -f "config/pulse.php" ]; then
+    echo "📦 Installing Laravel Pulse..."
+    php artisan pulse:install --no-interaction || echo "Pulse install skipped"
+    # Fix ownership after installation
+    chown -R www-data:www-data /var/www/html
+fi
+
+# Run Pulse migrations if tables don't exist
+if [ -f "config/pulse.php" ]; then
+    echo "📊 Running Pulse migrations..."
+    php artisan migrate --force 2>/dev/null || echo "Pulse migrations skipped"
+    chown -R www-data:www-data /var/www/html/storage
+    chown -R www-data:www-data /var/www/html/bootstrap/cache
+fi
+
+# Determine server type from environment variable (default: nginx)
+SERVER_TYPE=${SERVER_TYPE:-nginx}
+
+echo "🚦 Configuring services for server type: ${SERVER_TYPE}"
+
+# Configure supervisor based on server type
+/usr/local/bin/configure-supervisor.sh
+
 echo "🚦 Starting services..."
-echo "   - PHP-FPM"
-echo "   - Nginx"
+if [ "$SERVER_TYPE" = "swoole" ]; then
+    echo "   - Laravel Octane (Swoole)"
+else
+    echo "   - PHP-FPM"
+    echo "   - Nginx"
+fi
 echo "   - Laravel Queue Workers (2 processes)"
 echo "   - Laravel Scheduler (cron)"
+
+# Start supervisor
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
 

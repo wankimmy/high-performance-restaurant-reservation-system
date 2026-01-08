@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\ProcessReservation;
 use App\Models\Reservation;
 use App\Models\ReservationSetting;
+use App\Models\RestaurantSetting;
 use App\Models\Table;
 use App\Services\OtpService;
 use App\Services\WhatsAppService;
@@ -92,6 +93,9 @@ class ReservationController extends Controller
                     ], 409);
                 }
 
+                // Calculate deposit amount
+                $depositAmount = RestaurantSetting::calculateDeposit($data['pax']);
+
                 // Create pending reservation first
                 $reservation = Reservation::create([
                     'table_id' => $data['table_id'],
@@ -99,6 +103,7 @@ class ReservationController extends Controller
                     'customer_email' => $data['customer_email'],
                     'customer_phone' => $data['customer_phone'],
                     'pax' => $data['pax'],
+                    'deposit_amount' => $depositAmount,
                     'reservation_date' => $data['reservation_date'],
                     'reservation_time' => $data['reservation_time'],
                     'notes' => $data['notes'] ?? null,

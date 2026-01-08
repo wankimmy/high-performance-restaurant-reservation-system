@@ -33,7 +33,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::KFCzM6iIdeVNF9Gz',
+            '_route' => 'generated::PxaOeH86jUSWmAhE',
           ),
           1 => NULL,
           2 => 
@@ -53,7 +53,47 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::eufBkKEjc7WIS191',
+            '_route' => 'generated::4Pg7fwqQqpovrwbf',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      '/api/v1/restaurant-settings' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'generated::KeQ3mUVtrjib4vqj',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      '/api/v1/time-slots' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'generated::X1qFqbpgaXA4VngY',
           ),
           1 => NULL,
           2 => 
@@ -73,7 +113,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::RlcH5uy4f0Xf5DHX',
+            '_route' => 'generated::RXJ1Ewo1f7Q3EEr7',
           ),
           1 => NULL,
           2 => 
@@ -92,7 +132,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::j5VuXIgF9CnkXCXo',
+            '_route' => 'generated::EMVHHQ0bs5V3uKJW',
           ),
           1 => NULL,
           2 => 
@@ -111,7 +151,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::LN6Qy9Nf9BBhBU9F',
+            '_route' => 'generated::Et9w4FLhjBOQskoO',
           ),
           1 => NULL,
           2 => 
@@ -130,7 +170,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::z5MuItESkA8qWVOa',
+            '_route' => 'generated::6j8NaRU5sDhdGZoe',
           ),
           1 => NULL,
           2 => 
@@ -150,7 +190,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::creKkwhftjPsOpx2',
+            '_route' => 'generated::XF5uZ9keaLZNG7GV',
           ),
           1 => NULL,
           2 => 
@@ -267,7 +307,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::2tgVAjLNrPzVL1qX',
+            '_route' => 'generated::gCIGPTFbZKJeUxQ2',
           ),
           1 => NULL,
           2 => 
@@ -303,7 +343,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::lzMv6ezHUGLTDzfp',
+            '_route' => 'generated::hV05ZBA672i7pHTu',
           ),
           1 => NULL,
           2 => 
@@ -433,7 +473,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::epT4YBBSLw0Xfaya',
+            '_route' => 'generated::HWPqMNyyjlqXRt7b',
           ),
           1 => NULL,
           2 => 
@@ -551,6 +591,182 @@ app('router')->setCompiledRoutes(
           0 => 
           array (
             '_route' => 'admin.settings.toggle',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'POST' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      '/admin/restaurant-settings' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'admin.restaurant-settings.index',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      '/admin/restaurant-settings/update' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'admin.restaurant-settings.update',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'POST' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      '/admin/restaurant-settings/get' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'admin.restaurant-settings.get',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      '/admin/whatsapp-settings' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'admin.whatsapp-settings.index',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      '/admin/whatsapp-settings/status' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'admin.whatsapp-settings.status',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      '/admin/whatsapp-settings/qr' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'admin.whatsapp-settings.qr',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      '/admin/whatsapp-settings/connect' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'admin.whatsapp-settings.connect',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'POST' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      '/admin/whatsapp-settings/disconnect' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'admin.whatsapp-settings.disconnect',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'POST' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      '/admin/whatsapp-settings/update' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'admin.whatsapp-settings.update',
           ),
           1 => NULL,
           2 => 
@@ -714,7 +930,7 @@ app('router')->setCompiledRoutes(
     ),
     2 => 
     array (
-      0 => '{^(?|/reset\\-password/([^/]++)(*:32)|/verify\\-email/([^/]++)/([^/]++)(*:71)|/admin/(?|reservations/([^/]++)/cancel(*:116)|tables/([^/]++)(?|/(?|edit(*:150)|toggle\\-availability(*:178))|(*:187))))/?$}sDu',
+      0 => '{^(?|/reset\\-password/([^/]++)(*:32)|/verify\\-email/([^/]++)/([^/]++)(*:71)|/admin/(?|reservations/([^/]++)/(?|cancel(*:119)|request\\-arrival\\-verification(*:157)|verify\\-arrival\\-otp(*:185))|tables/([^/]++)(?|/(?|edit(*:220)|toggle\\-availability(*:248))|(*:257))))/?$}sDu',
     ),
     3 => 
     array (
@@ -765,7 +981,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      116 => 
+      119 => 
       array (
         0 => 
         array (
@@ -787,7 +1003,51 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      150 => 
+      157 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'admin.reservations.request-arrival-verification',
+          ),
+          1 => 
+          array (
+            0 => 'id',
+          ),
+          2 => 
+          array (
+            'POST' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      185 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'admin.reservations.verify-arrival-otp',
+          ),
+          1 => 
+          array (
+            0 => 'id',
+          ),
+          2 => 
+          array (
+            'POST' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      220 => 
       array (
         0 => 
         array (
@@ -810,7 +1070,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      178 => 
+      248 => 
       array (
         0 => 
         array (
@@ -832,7 +1092,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      187 => 
+      257 => 
       array (
         0 => 
         array (
@@ -926,7 +1186,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::KFCzM6iIdeVNF9Gz' => 
+    'generated::PxaOeH86jUSWmAhE' => 
     array (
       'methods' => 
       array (
@@ -947,7 +1207,7 @@ app('router')->setCompiledRoutes(
         'where' => 
         array (
         ),
-        'as' => 'generated::KFCzM6iIdeVNF9Gz',
+        'as' => 'generated::PxaOeH86jUSWmAhE',
       ),
       'fallback' => false,
       'defaults' => 
@@ -963,7 +1223,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::eufBkKEjc7WIS191' => 
+    'generated::4Pg7fwqQqpovrwbf' => 
     array (
       'methods' => 
       array (
@@ -984,7 +1244,7 @@ app('router')->setCompiledRoutes(
         'where' => 
         array (
         ),
-        'as' => 'generated::eufBkKEjc7WIS191',
+        'as' => 'generated::4Pg7fwqQqpovrwbf',
       ),
       'fallback' => false,
       'defaults' => 
@@ -1000,7 +1260,96 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::RlcH5uy4f0Xf5DHX' => 
+    'generated::KeQ3mUVtrjib4vqj' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'api/v1/restaurant-settings',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'api',
+        ),
+        'uses' => 'O:55:"Laravel\\SerializableClosure\\UnsignedSerializableClosure":1:{s:12:"serializable";O:46:"Laravel\\SerializableClosure\\Serializers\\Native":5:{s:3:"use";a:0:{}s:8:"function";s:493:"function () {
+        $settings = \\App\\Models\\RestaurantSetting::getSettings();
+        return \\response()->json([
+            \'success\' => true,
+            \'settings\' => [
+                \'opening_time\' => $settings->opening_time,
+                \'closing_time\' => $settings->closing_time,
+                \'deposit_per_pax\' => (float) $settings->deposit_per_pax,
+                \'time_slot_interval\' => (int) ($settings->time_slot_interval ?? 30),
+            ],
+        ]);
+    }";s:5:"scope";s:37:"Illuminate\\Routing\\RouteFileRegistrar";s:4:"this";N;s:4:"self";s:32:"00000000000003150000000000000000";}}',
+        'namespace' => NULL,
+        'prefix' => 'api/v1',
+        'where' => 
+        array (
+        ),
+        'as' => 'generated::KeQ3mUVtrjib4vqj',
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'generated::X1qFqbpgaXA4VngY' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'api/v1/time-slots',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'api',
+        ),
+        'uses' => 'O:55:"Laravel\\SerializableClosure\\UnsignedSerializableClosure":1:{s:12:"serializable";O:46:"Laravel\\SerializableClosure\\Serializers\\Native":5:{s:3:"use";a:0:{}s:8:"function";s:194:"function () {
+        $slots = \\App\\Models\\TimeSlot::getTimeSlots();
+        return \\response()->json([
+            \'success\' => true,
+            \'time_slots\' => $slots,
+        ]);
+    }";s:5:"scope";s:37:"Illuminate\\Routing\\RouteFileRegistrar";s:4:"this";N;s:4:"self";s:32:"00000000000006000000000000000000";}}',
+        'namespace' => NULL,
+        'prefix' => 'api/v1',
+        'where' => 
+        array (
+        ),
+        'as' => 'generated::X1qFqbpgaXA4VngY',
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'generated::RXJ1Ewo1f7Q3EEr7' => 
     array (
       'methods' => 
       array (
@@ -1020,7 +1369,7 @@ app('router')->setCompiledRoutes(
         'where' => 
         array (
         ),
-        'as' => 'generated::RlcH5uy4f0Xf5DHX',
+        'as' => 'generated::RXJ1Ewo1f7Q3EEr7',
       ),
       'fallback' => false,
       'defaults' => 
@@ -1036,7 +1385,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::j5VuXIgF9CnkXCXo' => 
+    'generated::EMVHHQ0bs5V3uKJW' => 
     array (
       'methods' => 
       array (
@@ -1056,7 +1405,7 @@ app('router')->setCompiledRoutes(
         'where' => 
         array (
         ),
-        'as' => 'generated::j5VuXIgF9CnkXCXo',
+        'as' => 'generated::EMVHHQ0bs5V3uKJW',
       ),
       'fallback' => false,
       'defaults' => 
@@ -1072,7 +1421,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::LN6Qy9Nf9BBhBU9F' => 
+    'generated::Et9w4FLhjBOQskoO' => 
     array (
       'methods' => 
       array (
@@ -1092,7 +1441,7 @@ app('router')->setCompiledRoutes(
         'where' => 
         array (
         ),
-        'as' => 'generated::LN6Qy9Nf9BBhBU9F',
+        'as' => 'generated::Et9w4FLhjBOQskoO',
       ),
       'fallback' => false,
       'defaults' => 
@@ -1108,7 +1457,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::z5MuItESkA8qWVOa' => 
+    'generated::6j8NaRU5sDhdGZoe' => 
     array (
       'methods' => 
       array (
@@ -1129,7 +1478,7 @@ app('router')->setCompiledRoutes(
         'where' => 
         array (
         ),
-        'as' => 'generated::z5MuItESkA8qWVOa',
+        'as' => 'generated::6j8NaRU5sDhdGZoe',
       ),
       'fallback' => false,
       'defaults' => 
@@ -1145,7 +1494,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::creKkwhftjPsOpx2' => 
+    'generated::XF5uZ9keaLZNG7GV' => 
     array (
       'methods' => 
       array (
@@ -1173,8 +1522,8 @@ app('router')->setCompiledRoutes(
                     return response(\\Illuminate\\Support\\Facades\\View::file(\'/var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Configuration\'.\'/../resources/health-up.blade.php\', [
                         \'exception\' => $exception,
                     ]), status: $exception ? 500 : 200);
-                }";s:5:"scope";s:54:"Illuminate\\Foundation\\Configuration\\ApplicationBuilder";s:4:"this";N;s:4:"self";s:32:"000000000000061f0000000000000000";}}',
-        'as' => 'generated::creKkwhftjPsOpx2',
+                }";s:5:"scope";s:54:"Illuminate\\Foundation\\Configuration\\ApplicationBuilder";s:4:"this";N;s:4:"self";s:32:"00000000000005fd0000000000000000";}}',
+        'as' => 'generated::XF5uZ9keaLZNG7GV',
       ),
       'fallback' => false,
       'defaults' => 
@@ -1206,7 +1555,7 @@ app('router')->setCompiledRoutes(
         ),
         'uses' => 'O:55:"Laravel\\SerializableClosure\\UnsignedSerializableClosure":1:{s:12:"serializable";O:46:"Laravel\\SerializableClosure\\Serializers\\Native":5:{s:3:"use";a:0:{}s:8:"function";s:50:"function () {
     return \\view(\'booking.index\');
-}";s:5:"scope";s:37:"Illuminate\\Routing\\RouteFileRegistrar";s:4:"this";N;s:4:"self";s:32:"00000000000005ed0000000000000000";}}',
+}";s:5:"scope";s:37:"Illuminate\\Routing\\RouteFileRegistrar";s:4:"this";N;s:4:"self";s:32:"00000000000003490000000000000000";}}',
         'namespace' => NULL,
         'prefix' => '',
         'where' => 
@@ -1244,7 +1593,7 @@ app('router')->setCompiledRoutes(
         ),
         'uses' => 'O:55:"Laravel\\SerializableClosure\\UnsignedSerializableClosure":1:{s:12:"serializable";O:46:"Laravel\\SerializableClosure\\Serializers\\Native":5:{s:3:"use";a:0:{}s:8:"function";s:55:"function () {
     return \\view(\'booking.verify-otp\');
-}";s:5:"scope";s:37:"Illuminate\\Routing\\RouteFileRegistrar";s:4:"this";N;s:4:"self";s:32:"00000000000006200000000000000000";}}',
+}";s:5:"scope";s:37:"Illuminate\\Routing\\RouteFileRegistrar";s:4:"this";N;s:4:"self";s:32:"000000000000031e0000000000000000";}}',
         'namespace' => NULL,
         'prefix' => '',
         'where' => 
@@ -1282,7 +1631,7 @@ app('router')->setCompiledRoutes(
         ),
         'uses' => 'O:55:"Laravel\\SerializableClosure\\UnsignedSerializableClosure":1:{s:12:"serializable";O:46:"Laravel\\SerializableClosure\\Serializers\\Native":5:{s:3:"use";a:0:{}s:8:"function";s:50:"function () {
     return \\view(\'booking.queue\');
-}";s:5:"scope";s:37:"Illuminate\\Routing\\RouteFileRegistrar";s:4:"this";N;s:4:"self";s:32:"00000000000005f50000000000000000";}}',
+}";s:5:"scope";s:37:"Illuminate\\Routing\\RouteFileRegistrar";s:4:"this";N;s:4:"self";s:32:"00000000000003200000000000000000";}}',
         'namespace' => NULL,
         'prefix' => '',
         'where' => 
@@ -1336,7 +1685,7 @@ app('router')->setCompiledRoutes(
         \'message\' => $message,
         \'reservation\' => $reservation,
     ]);
-}";s:5:"scope";s:37:"Illuminate\\Routing\\RouteFileRegistrar";s:4:"this";N;s:4:"self";s:32:"00000000000005f70000000000000000";}}',
+}";s:5:"scope";s:37:"Illuminate\\Routing\\RouteFileRegistrar";s:4:"this";N;s:4:"self";s:32:"00000000000003220000000000000000";}}',
         'namespace' => NULL,
         'prefix' => '',
         'where' => 
@@ -1396,7 +1745,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::2tgVAjLNrPzVL1qX' => 
+    'generated::gCIGPTFbZKJeUxQ2' => 
     array (
       'methods' => 
       array (
@@ -1417,7 +1766,7 @@ app('router')->setCompiledRoutes(
         'where' => 
         array (
         ),
-        'as' => 'generated::2tgVAjLNrPzVL1qX',
+        'as' => 'generated::gCIGPTFbZKJeUxQ2',
       ),
       'fallback' => false,
       'defaults' => 
@@ -1471,7 +1820,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::lzMv6ezHUGLTDzfp' => 
+    'generated::hV05ZBA672i7pHTu' => 
     array (
       'methods' => 
       array (
@@ -1492,7 +1841,7 @@ app('router')->setCompiledRoutes(
         'where' => 
         array (
         ),
-        'as' => 'generated::lzMv6ezHUGLTDzfp',
+        'as' => 'generated::hV05ZBA672i7pHTu',
       ),
       'fallback' => false,
       'defaults' => 
@@ -1812,7 +2161,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::epT4YBBSLw0Xfaya' => 
+    'generated::HWPqMNyyjlqXRt7b' => 
     array (
       'methods' => 
       array (
@@ -1833,7 +2182,7 @@ app('router')->setCompiledRoutes(
         'where' => 
         array (
         ),
-        'as' => 'generated::epT4YBBSLw0Xfaya',
+        'as' => 'generated::HWPqMNyyjlqXRt7b',
       ),
       'fallback' => false,
       'defaults' => 
@@ -1941,7 +2290,7 @@ app('router')->setCompiledRoutes(
         ),
         'uses' => 'O:55:"Laravel\\SerializableClosure\\UnsignedSerializableClosure":1:{s:12:"serializable";O:46:"Laravel\\SerializableClosure\\Serializers\\Native":5:{s:3:"use";a:0:{}s:8:"function";s:60:"function () {
         return \\view(\'admin.dashboard\');
-    }";s:5:"scope";s:37:"Illuminate\\Routing\\RouteFileRegistrar";s:4:"this";N;s:4:"self";s:32:"000000000000060c0000000000000000";}}',
+    }";s:5:"scope";s:37:"Illuminate\\Routing\\RouteFileRegistrar";s:4:"this";N;s:4:"self";s:32:"00000000000003370000000000000000";}}',
         'as' => 'admin.dashboard',
         'namespace' => NULL,
         'prefix' => '/admin',
@@ -2040,6 +2389,82 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
+    'admin.reservations.request-arrival-verification' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'POST',
+      ),
+      'uri' => 'admin/reservations/{id}/request-arrival-verification',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'verified',
+        ),
+        'uses' => 'App\\Http\\Controllers\\Admin\\AdminReservationController@requestArrivalVerification',
+        'controller' => 'App\\Http\\Controllers\\Admin\\AdminReservationController@requestArrivalVerification',
+        'as' => 'admin.reservations.request-arrival-verification',
+        'namespace' => NULL,
+        'prefix' => '/admin',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'admin.reservations.verify-arrival-otp' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'POST',
+      ),
+      'uri' => 'admin/reservations/{id}/verify-arrival-otp',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'verified',
+        ),
+        'uses' => 'App\\Http\\Controllers\\Admin\\AdminReservationController@verifyArrivalOtp',
+        'controller' => 'App\\Http\\Controllers\\Admin\\AdminReservationController@verifyArrivalOtp',
+        'as' => 'admin.reservations.verify-arrival-otp',
+        'namespace' => NULL,
+        'prefix' => '/admin',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
     'admin.settings.index' => 
     array (
       'methods' => 
@@ -2097,6 +2522,353 @@ app('router')->setCompiledRoutes(
         'uses' => 'App\\Http\\Controllers\\Admin\\AdminReservationController@toggleDateStatus',
         'controller' => 'App\\Http\\Controllers\\Admin\\AdminReservationController@toggleDateStatus',
         'as' => 'admin.settings.toggle',
+        'namespace' => NULL,
+        'prefix' => '/admin',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'admin.restaurant-settings.index' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'admin/restaurant-settings',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'verified',
+        ),
+        'uses' => 'App\\Http\\Controllers\\Admin\\RestaurantSettingsController@index',
+        'controller' => 'App\\Http\\Controllers\\Admin\\RestaurantSettingsController@index',
+        'as' => 'admin.restaurant-settings.index',
+        'namespace' => NULL,
+        'prefix' => '/admin',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'admin.restaurant-settings.update' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'POST',
+      ),
+      'uri' => 'admin/restaurant-settings/update',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'verified',
+        ),
+        'uses' => 'App\\Http\\Controllers\\Admin\\RestaurantSettingsController@update',
+        'controller' => 'App\\Http\\Controllers\\Admin\\RestaurantSettingsController@update',
+        'as' => 'admin.restaurant-settings.update',
+        'namespace' => NULL,
+        'prefix' => '/admin',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'admin.restaurant-settings.get' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'admin/restaurant-settings/get',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'verified',
+        ),
+        'uses' => 'App\\Http\\Controllers\\Admin\\RestaurantSettingsController@getSettings',
+        'controller' => 'App\\Http\\Controllers\\Admin\\RestaurantSettingsController@getSettings',
+        'as' => 'admin.restaurant-settings.get',
+        'namespace' => NULL,
+        'prefix' => '/admin',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'admin.whatsapp-settings.index' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'admin/whatsapp-settings',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'verified',
+        ),
+        'uses' => 'App\\Http\\Controllers\\Admin\\WhatsAppSettingsController@index',
+        'controller' => 'App\\Http\\Controllers\\Admin\\WhatsAppSettingsController@index',
+        'as' => 'admin.whatsapp-settings.index',
+        'namespace' => NULL,
+        'prefix' => '/admin',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'admin.whatsapp-settings.status' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'admin/whatsapp-settings/status',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'verified',
+        ),
+        'uses' => 'App\\Http\\Controllers\\Admin\\WhatsAppSettingsController@getStatus',
+        'controller' => 'App\\Http\\Controllers\\Admin\\WhatsAppSettingsController@getStatus',
+        'as' => 'admin.whatsapp-settings.status',
+        'namespace' => NULL,
+        'prefix' => '/admin',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'admin.whatsapp-settings.qr' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'admin/whatsapp-settings/qr',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'verified',
+        ),
+        'uses' => 'App\\Http\\Controllers\\Admin\\WhatsAppSettingsController@getQrCode',
+        'controller' => 'App\\Http\\Controllers\\Admin\\WhatsAppSettingsController@getQrCode',
+        'as' => 'admin.whatsapp-settings.qr',
+        'namespace' => NULL,
+        'prefix' => '/admin',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'admin.whatsapp-settings.connect' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'POST',
+      ),
+      'uri' => 'admin/whatsapp-settings/connect',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'verified',
+        ),
+        'uses' => 'App\\Http\\Controllers\\Admin\\WhatsAppSettingsController@connect',
+        'controller' => 'App\\Http\\Controllers\\Admin\\WhatsAppSettingsController@connect',
+        'as' => 'admin.whatsapp-settings.connect',
+        'namespace' => NULL,
+        'prefix' => '/admin',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'admin.whatsapp-settings.disconnect' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'POST',
+      ),
+      'uri' => 'admin/whatsapp-settings/disconnect',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'verified',
+        ),
+        'uses' => 'App\\Http\\Controllers\\Admin\\WhatsAppSettingsController@disconnect',
+        'controller' => 'App\\Http\\Controllers\\Admin\\WhatsAppSettingsController@disconnect',
+        'as' => 'admin.whatsapp-settings.disconnect',
+        'namespace' => NULL,
+        'prefix' => '/admin',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'admin.whatsapp-settings.update' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'POST',
+      ),
+      'uri' => 'admin/whatsapp-settings/update',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'verified',
+        ),
+        'uses' => 'App\\Http\\Controllers\\Admin\\WhatsAppSettingsController@update',
+        'controller' => 'App\\Http\\Controllers\\Admin\\WhatsAppSettingsController@update',
+        'as' => 'admin.whatsapp-settings.update',
         'namespace' => NULL,
         'prefix' => '/admin',
         'where' => 
