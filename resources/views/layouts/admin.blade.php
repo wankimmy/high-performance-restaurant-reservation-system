@@ -12,66 +12,7 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
     
-    <style>
-        [x-cloak] { display: none !important; }
-        
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        }
-        
-        .sidebar-link.active {
-            background-color: rgb(59 130 246 / 0.1);
-            color: rgb(59 130 246);
-        }
-        
-        .sidebar-link:hover {
-            background-color: rgb(0 0 0 / 0.05);
-        }
-        
-        /* Tailwind Form Styles */
-        input[type="text"],
-        input[type="email"],
-        input[type="tel"],
-        input[type="number"],
-        input[type="date"],
-        input[type="time"],
-        input[type="url"],
-        input[type="password"],
-        textarea,
-        select {
-            @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500;
-        }
-        
-        input[type="checkbox"],
-        input[type="radio"] {
-            @apply h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded;
-        }
-        
-        label {
-            @apply block text-sm font-medium text-gray-700 mb-2;
-        }
-        
-        button[type="submit"],
-        .btn {
-            @apply inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
-        }
-        
-        .btn-secondary {
-            @apply bg-gray-600 hover:bg-gray-700 focus:ring-gray-500;
-        }
-        
-        .btn-success {
-            @apply bg-green-600 hover:bg-green-700 focus:ring-green-500;
-        }
-        
-        .btn-danger {
-            @apply bg-red-600 hover:bg-red-700 focus:ring-red-500;
-        }
-        
-        .btn-warning {
-            @apply bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
     
     <script>
         tailwind.config = {
@@ -225,6 +166,25 @@
     </div>
 
     <script>
+        // Global Loading Spinner Utility
+        function setButtonLoading(button, isLoading, originalText = null) {
+            if (!button) return;
+            
+            const spinnerSvg = '<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+            
+            if (isLoading) {
+                button.disabled = true;
+                button.dataset.originalText = originalText || button.innerHTML;
+                button.innerHTML = spinnerSvg + (originalText || button.textContent.trim());
+                button.classList.add('opacity-75', 'cursor-not-allowed');
+            } else {
+                button.disabled = false;
+                button.innerHTML = button.dataset.originalText || originalText || button.innerHTML;
+                button.classList.remove('opacity-75', 'cursor-not-allowed');
+                delete button.dataset.originalText;
+            }
+        }
+        
         // Global Toast Notification Function (Tailwind-based)
         function showToast(message, type = 'success') {
             const toastContainer = document.getElementById('toast-container');
@@ -271,21 +231,6 @@
         @endif
     </script>
     
-    <style>
-        @keyframes slide-in {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-        .animate-slide-in {
-            animation: slide-in 0.3s ease-out;
-        }
-    </style>
 
     @stack('scripts')
 </body>

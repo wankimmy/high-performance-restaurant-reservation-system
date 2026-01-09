@@ -95,8 +95,8 @@
         }
 
         const verifyBtn = document.getElementById('verifyOtpBtn');
-        verifyBtn.disabled = true;
-        verifyBtn.textContent = 'Verifying...';
+        const originalText = verifyBtn.innerHTML;
+        setButtonLoading(verifyBtn, true, originalText);
 
         try {
             const response = await fetch(`${API_BASE}/verify-otp`, {
@@ -118,14 +118,12 @@
                 // Redirect to queue page
                 window.location.href = `/queue?session_id=${sessionId}&reservation_id=${reservationId || ''}`;
             } else {
+                setButtonLoading(verifyBtn, false, originalText);
                 showOtpMessage(result.message || 'Invalid OTP code. Please try again.', 'error');
-                verifyBtn.disabled = false;
-                verifyBtn.textContent = 'Verify OTP';
             }
         } catch (error) {
+            setButtonLoading(verifyBtn, false, originalText);
             showOtpMessage('Network error. Please try again.', 'error');
-            verifyBtn.disabled = false;
-            verifyBtn.textContent = 'Verify OTP';
         }
     });
 
@@ -142,8 +140,8 @@
 
     // Resend OTP
     document.getElementById('resendOtpBtn')?.addEventListener('click', async function() {
-        this.disabled = true;
-        this.textContent = 'Sending...';
+        const originalText = this.innerHTML;
+        setButtonLoading(this, true, originalText);
 
         try {
             const response = await fetch(`${API_BASE}/resend-otp`, {
@@ -169,8 +167,7 @@
         } catch (error) {
             showOtpMessage('Network error. Please try again.', 'error');
         } finally {
-            this.disabled = false;
-            this.textContent = 'Resend';
+            setButtonLoading(this, false, originalText);
         }
     });
 

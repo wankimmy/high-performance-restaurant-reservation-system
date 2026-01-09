@@ -144,7 +144,7 @@ class WhatsAppService
             
             $message = "🏨 Arrival Verification\n\n";
             $message .= "Hello {$reservationDetails['customer_name']},\n\n";
-            $message .= "Please verify your arrival with this OTP code: {$otpCode}\n\n";
+            $message .= "Please verify your arrival with this OTP code: <strong>{$otpCode}</strong>\n\n";
             $message .= "Reservation Details:\n";
             $message .= "Table: {$reservationDetails['table_name']}\n";
             $message .= "Date: {$reservationDetails['reservation_date']}\n";

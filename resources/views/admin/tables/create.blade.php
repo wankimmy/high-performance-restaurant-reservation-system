@@ -49,4 +49,14 @@
         </div>
     </form>
 </div>
+
+@push('scripts')
+<script>
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        setButtonLoading(submitBtn, true, originalText);
+    });
+</script>
+@endpush
 @endsection

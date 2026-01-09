@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Reservation;
-use App\Models\ReservationSetting;
 use App\Models\Table;
 use App\Services\OtpService;
 use App\Services\WhatsAppService;
@@ -82,37 +81,6 @@ class AdminReservationController extends Controller
         ]);
     }
 
-    public function toggleDateStatus(Request $request): JsonResponse
-    {
-        $validator = Validator::make($request->all(), [
-            'date' => 'required|date',
-            'is_open' => 'required|boolean',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        $data = $validator->validated();
-
-        $setting = ReservationSetting::firstOrNew(['date' => $data['date']]);
-        $setting->is_open = $data['is_open'];
-        $setting->save();
-
-        // Clear cache for this specific date and the closed dates list
-        ReservationSetting::clearCache($data['date']);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Reservation date status updated',
-            'setting' => $setting,
-        ]);
-    }
-
-
     /**
      * Request arrival verification - sends OTP to customer
      */
@@ -137,18 +105,23 @@ class AdminReservationController extends Controller
         // Generate arrival OTP
         $otpData = $this->otpService->generateOtp($reservation->customer_phone, $reservation->id);
 
+        // Get OTP code from database
+        $otp = $this->otpService->getOtpBySession($otpData['session_id']);
+
         // Send arrival OTP via WhatsApp
-        $this->whatsAppService->sendArrivalOtp(
-            $reservation->customer_phone,
-            $otpData['otp_code'],
-            [
-                'id' => $reservation->id,
-                'customer_name' => $reservation->customer_name,
-                'table_name' => $reservation->table->name,
-                'reservation_date' => $reservation->reservation_date->format('M d, Y'),
-                'reservation_time' => \Carbon\Carbon::parse($reservation->reservation_time)->format('g:i A'),
-            ]
-        );
+        if ($otp) {
+            $this->whatsAppService->sendArrivalOtp(
+                $reservation->customer_phone,
+                $otp->otp_code,
+                [
+                    'id' => $reservation->id,
+                    'customer_name' => $reservation->customer_name,
+                    'table_name' => $reservation->table->name,
+                    'reservation_date' => $reservation->reservation_date->format('M d, Y'),
+                    'reservation_time' => \Carbon\Carbon::parse($reservation->reservation_time)->format('g:i A'),
+                ]
+            );
+        }
 
         return response()->json([
             'success' => true,

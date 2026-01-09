@@ -13,7 +13,6 @@ use App\Services\WhatsAppService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class ReservationController extends Controller
@@ -115,8 +114,13 @@ class ReservationController extends Controller
                 // Generate OTP
                 $otpData = $this->otpService->generateOtp($data['customer_phone'], $reservation->id);
                 
+                // Get OTP code from database
+                $otp = $this->otpService->getOtpBySession($otpData['session_id']);
+                
                 // Send OTP via WhatsApp
-                $this->whatsAppService->sendOtp($data['customer_phone'], $otpData['otp_code'], $data['customer_name']);
+                if ($otp) {
+                    $this->whatsAppService->sendOtp($data['customer_phone'], $otp->otp_code, $data['customer_name']);
+                }
 
                 // Update reservation with OTP session ID
                 $reservation->update(['otp_session_id' => $otpData['session_id']]);
@@ -335,6 +339,9 @@ class ReservationController extends Controller
         // Generate new OTP
         $otpData = $this->otpService->generateOtp($otp->phone_number, $otp->reservation_id);
         
+        // Get the new OTP from database
+        $newOtp = $this->otpService->getOtpBySession($otpData['session_id']);
+        
         // Get customer name from reservation if available
         $customerName = null;
         if ($otp->reservation_id) {
@@ -343,7 +350,9 @@ class ReservationController extends Controller
         }
         
         // Send OTP via WhatsApp
-        $this->whatsAppService->sendOtp($otp->phone_number, $otpData['otp_code'], $customerName);
+        if ($newOtp) {
+            $this->whatsAppService->sendOtp($otp->phone_number, $newOtp->otp_code, $customerName);
+        }
 
         // Update reservation with new session ID
         if ($otp->reservation_id) {
@@ -355,6 +364,61 @@ class ReservationController extends Controller
             'success' => true,
             'message' => 'OTP resent successfully',
             'session_id' => $otpData['session_id'],
+        ]);
+    }
+
+    /**
+     * Get restaurant settings (API)
+     */
+    public function getRestaurantSettings(): JsonResponse
+    {
+        $settings = RestaurantSetting::getSettings();
+        
+        return response()->json([
+            'success' => true,
+            'settings' => [
+                'opening_time' => $settings->opening_time,
+                'closing_time' => $settings->closing_time,
+                'deposit_per_pax' => (float) $settings->deposit_per_pax,
+                'time_slot_interval' => (int) ($settings->time_slot_interval ?? 30),
+            ],
+        ]);
+    }
+
+    /**
+     * Get available time slots
+     */
+    public function getTimeSlots(): JsonResponse
+    {
+        $settings = RestaurantSetting::getSettings();
+        $slots = [];
+        
+        $openingTime = \Carbon\Carbon::parse($settings->opening_time);
+        $closingTime = \Carbon\Carbon::parse($settings->closing_time);
+        $interval = $settings->time_slot_interval ?? 30;
+        
+        $currentTime = $openingTime->copy();
+        
+        while ($currentTime->lt($closingTime)) {
+            $endTime = $currentTime->copy()->addMinutes($interval);
+            
+            if ($endTime->gt($closingTime)) {
+                break;
+            }
+            
+            $slots[] = [
+                'start_time' => $currentTime->format('H:i'),
+                'end_time' => $endTime->format('H:i'),
+                'display' => $currentTime->format('g:i A'),
+                'value' => $currentTime->format('H:i'),
+            ];
+            
+            $currentTime->addMinutes($interval);
+        }
+        
+        return response()->json([
+            'success' => true,
+            'time_slots' => $slots,
         ]);
     }
 

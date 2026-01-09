@@ -60,7 +60,7 @@
                             <select id="pax" name="pax" 
                                     class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" 
                                     required>
-                                @for($i = 1; $i <= 20; $i++)
+                                @for($i = 1; $i <= 10; $i++)
                                 <option value="{{ $i }}">{{ $i }}</option>
                                 @endfor
                             </select>
@@ -558,9 +558,8 @@
         }
         
         const submitBtn = document.getElementById('submitBtn');
-        const submitText = document.getElementById('submitText');
-        submitBtn.disabled = true;
-        submitText.textContent = 'Sending OTP...';
+        const originalText = submitBtn.innerHTML;
+        setButtonLoading(submitBtn, true, originalText);
 
         const formData = new FormData(this);
         const data = Object.fromEntries(formData);
@@ -587,14 +586,12 @@
                 // Redirect to OTP verification page
                 window.location.href = `/verify-otp?session_id=${result.session_id}&reservation_id=${result.reservation_id || ''}`;
             } else {
+                setButtonLoading(submitBtn, false, originalText);
                 showMessage(result.message || 'Failed to make reservation. Please try again.', 'error');
-                submitBtn.disabled = false;
-                submitText.textContent = 'Confirm Reservation';
             }
         } catch (error) {
+            setButtonLoading(submitBtn, false, originalText);
             showMessage('Network error. Please check your connection and try again.', 'error');
-            submitBtn.disabled = false;
-            submitText.textContent = 'Confirm Reservation';
         }
     });
 

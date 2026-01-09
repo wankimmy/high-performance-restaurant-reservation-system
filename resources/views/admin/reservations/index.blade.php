@@ -71,7 +71,7 @@
                             <div class="flex items-center gap-2 flex-wrap">
                                 @if($reservation->status !== 'cancelled')
                                     @if(!$reservation->has_arrived && $reservation->status === 'confirmed')
-                                        <button onclick="requestArrivalVerification({{ $reservation->id }})" 
+                                        <button onclick="requestArrivalVerification({{ $reservation->id }}, this)" 
                                                 class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
                                                 title="Verify Customer Arrival">
                                             <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -80,7 +80,7 @@
                                             Verify Arrival
                                         </button>
                                     @endif
-                                    <button onclick="cancelReservation({{ $reservation->id }})" 
+                                    <button onclick="cancelReservation({{ $reservation->id }}, this)" 
                                             class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
                                             title="Cancel Reservation">
                                         <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -193,10 +193,14 @@
 
     let currentReservationId = null;
 
-    function requestArrivalVerification(id) {
+    function requestArrivalVerification(id, button) {
         if (!confirm('Send OTP to customer for arrival verification?')) {
             return;
         }
+
+        if (!button) return;
+        const originalText = button.innerHTML;
+        setButtonLoading(button, true, originalText);
 
         fetch(`/admin/reservations/${id}/request-arrival-verification`, {
             method: 'POST',
@@ -208,6 +212,7 @@
         })
         .then(response => response.json())
         .then(data => {
+            setButtonLoading(button, false, originalText);
             if (data.success) {
                 showToast('OTP sent to customer WhatsApp. Please ask customer to show the OTP.', 'success');
                 currentReservationId = id;
@@ -220,6 +225,7 @@
             }
         })
         .catch(error => {
+            setButtonLoading(button, false, originalText);
             showToast('Error sending OTP', 'error');
         });
     }
@@ -241,6 +247,10 @@
             return;
         }
 
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        setButtonLoading(submitBtn, true, originalText);
+
         fetch(`/admin/reservations/${reservationId}/verify-arrival-otp`, {
             method: 'POST',
             headers: {
@@ -254,6 +264,7 @@
         })
         .then(response => response.json())
         .then(data => {
+            setButtonLoading(submitBtn, false, originalText);
             if (data.success) {
                 showToast('Customer arrival verified successfully!', 'success');
                 closeOtpModal();
@@ -263,6 +274,7 @@
             }
         })
         .catch(error => {
+            setButtonLoading(submitBtn, false, originalText);
             showToast('Error verifying OTP', 'error');
         });
     });
@@ -271,10 +283,14 @@
         e.target.value = e.target.value.replace(/[^0-9]/g, '');
     });
 
-    function cancelReservation(id) {
+    function cancelReservation(id, button) {
         if (!confirm('Are you sure you want to cancel this reservation?')) {
             return;
         }
+
+        if (!button) return;
+        const originalText = button.innerHTML;
+        setButtonLoading(button, true, originalText);
 
         fetch(`/admin/reservations/${id}/cancel`, {
             method: 'POST',
@@ -286,6 +302,7 @@
         })
         .then(response => response.json())
         .then(data => {
+            setButtonLoading(button, false, originalText);
             if (data.success) {
                 showToast('Reservation cancelled successfully', 'success');
                 setTimeout(() => location.reload(), 1000);
@@ -294,6 +311,7 @@
             }
         })
         .catch(error => {
+            setButtonLoading(button, false, originalText);
             showToast('Error cancelling reservation', 'error');
         });
     }

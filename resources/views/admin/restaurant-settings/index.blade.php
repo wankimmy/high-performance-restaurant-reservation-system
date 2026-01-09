@@ -123,7 +123,7 @@
                                 {{ $setting->is_open ? 'Open' : 'Closed' }}
                             </span>
                         </div>
-                        <button onclick="toggleDate('{{ $setting->date->format('Y-m-d') }}', {{ $setting->is_open ? 'false' : 'true' }})"
+                        <button onclick="toggleDate('{{ $setting->date->format('Y-m-d') }}', {{ $setting->is_open ? 'false' : 'true' }}, this)"
                                 class="px-3 py-1 text-sm rounded-md {{ $setting->is_open ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700' }} text-white">
                             {{ $setting->is_open ? 'Close' : 'Open' }}
                         </button>
@@ -158,15 +158,16 @@
             return;
         }
         
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        setButtonLoading(submitBtn, true, originalText);
+        
         const data = {
             opening_time: openingTime,
             closing_time: closingTime,
             deposit_per_pax: parseFloat(document.getElementById('deposit_per_pax').value),
             time_slot_interval: parseInt(document.getElementById('time_slot_interval').value),
         };
-
-        // Debug logging
-        console.log('Sending data:', data);
 
         try {
             const response = await fetch('/admin/restaurant-settings/update', {
@@ -180,10 +181,8 @@
             });
 
             const result = await response.json();
-            
-            // Debug logging
-            console.log('Response:', result);
 
+            setButtonLoading(submitBtn, false, originalText);
             if (result.success) {
                 showToast('Settings saved successfully', 'success');
                 updateTimeSlotsPreview();
@@ -194,14 +193,10 @@
                     const errorList = Object.values(result.errors).flat().join(', ');
                     errorMessage = errorMessage + ': ' + errorList;
                 }
-                // Include debug info if available
-                if (result.debug) {
-                    console.error('Debug info:', result.debug);
-                }
                 showToast(errorMessage, 'error');
             }
         } catch (error) {
-            console.error('Error:', error);
+            setButtonLoading(submitBtn, false, originalText);
             showToast('Error saving settings', 'error');
         }
     });
@@ -209,6 +204,10 @@
     // Date Settings Form
     document.getElementById('dateSettingsForm').addEventListener('submit', async function(e) {
         e.preventDefault();
+        
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        setButtonLoading(submitBtn, true, originalText);
         
         const data = {
             date: document.getElementById('date').value,
@@ -228,6 +227,7 @@
 
             const result = await response.json();
 
+            setButtonLoading(submitBtn, false, originalText);
             if (result.success) {
                 showToast('Date setting saved successfully', 'success');
                 setTimeout(() => location.reload(), 1000);
@@ -235,11 +235,16 @@
                 showToast(result.message || 'Failed to save date setting', 'error');
             }
         } catch (error) {
+            setButtonLoading(submitBtn, false, originalText);
             showToast('Error saving date setting', 'error');
         }
     });
 
-    function toggleDate(date, isOpen) {
+    function toggleDate(date, isOpen, button) {
+        if (!button) return;
+        const originalText = button.innerHTML;
+        setButtonLoading(button, true, originalText);
+
         fetch('/admin/restaurant-settings/toggle-date', {
             method: 'POST',
             headers: {
@@ -251,6 +256,7 @@
         })
         .then(response => response.json())
         .then(data => {
+            setButtonLoading(button, false, originalText);
             if (data.success) {
                 showToast('Date setting updated successfully', 'success');
                 setTimeout(() => location.reload(), 1000);
@@ -258,7 +264,10 @@
                 showToast(data.message || 'Failed to update date setting', 'error');
             }
         })
-        .catch(error => showToast('Error updating date setting', 'error'));
+        .catch(error => {
+            setButtonLoading(button, false, originalText);
+            showToast('Error updating date setting', 'error');
+        });
     }
 
     // Generate time slots preview

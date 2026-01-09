@@ -34,7 +34,6 @@ class OtpService
 
         return [
             'session_id' => $sessionId,
-            'otp_code' => $otpCode, // Only for testing, remove in production
             'expires_at' => $otp->expires_at,
         ];
     }

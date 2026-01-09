@@ -56,30 +56,5 @@ class Table extends Model
         return $conflictingReservation !== null;
     }
 
-    /**
-     * Check if table should be available based on reservations
-     */
-    public function shouldBeAvailable(): bool
-    {
-        // If manually set to unavailable, respect that
-        if (!$this->is_available) {
-            // Check if there are any active reservations
-            $hasActiveReservations = $this->reservations()
-                ->where('status', '!=', 'cancelled')
-                ->where(function ($query) {
-                    $query->where('reservation_date', '>', now()->format('Y-m-d'))
-                        ->orWhere(function ($q) {
-                            $q->where('reservation_date', now()->format('Y-m-d'))
-                                ->where('reservation_time', '>', now()->format('H:i'));
-                        });
-                })
-                ->exists();
-
-            // If no active reservations, should be available
-            return !$hasActiveReservations;
-        }
-
-        return true;
-    }
 }
 

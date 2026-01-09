@@ -27,14 +27,9 @@ class RestaurantSettingsController extends Controller
      */
     public function update(Request $request): JsonResponse
     {
-        // Get raw input for debugging
-        $rawData = $request->all();
-        
-        // Normalize time values - trim whitespace and ensure proper format
         $openingTime = trim($request->input('opening_time', ''));
         $closingTime = trim($request->input('closing_time', ''));
         
-        // Custom validation for time format (more flexible)
         $validator = Validator::make([
             'opening_time' => $openingTime,
             'closing_time' => $closingTime,
@@ -44,29 +39,26 @@ class RestaurantSettingsController extends Controller
             'opening_time' => [
                 'required',
                 function ($attribute, $value, $fail) {
-                    if (empty($value) || trim($value) === '') {
+                    $value = trim($value);
+                    if (empty($value)) {
                         $fail('The opening time field is required.');
                         return;
                     }
-                    $value = trim($value);
-                    // Accept HH:MM format (HTML5 time input format)
-                    // Pattern: HH:MM where HH is 00-23 and MM is 00-59
                     if (!preg_match('/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/', $value)) {
-                        $fail('The opening time must be in HH:MM format (e.g., 09:00). Received: "' . $value . '"');
+                        $fail('The opening time must be in HH:MM format (e.g., 09:00).');
                     }
                 },
             ],
             'closing_time' => [
                 'required',
                 function ($attribute, $value, $fail) {
-                    if (empty($value) || trim($value) === '') {
+                    $value = trim($value);
+                    if (empty($value)) {
                         $fail('The closing time field is required.');
                         return;
                     }
-                    $value = trim($value);
-                    // Accept HH:MM format (HTML5 time input format)
                     if (!preg_match('/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/', $value)) {
-                        $fail('The closing time must be in HH:MM format (e.g., 22:00). Received: "' . $value . '"');
+                        $fail('The closing time must be in HH:MM format (e.g., 22:00).');
                     }
                 },
                 function ($attribute, $value, $fail) use ($openingTime) {
@@ -74,25 +66,20 @@ class RestaurantSettingsController extends Controller
                     $opening = trim($openingTime);
                     
                     if ($opening && $value && preg_match('/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/', $opening) && preg_match('/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/', $value)) {
-                        // Convert to minutes for comparison
                         $openingParts = explode(':', $opening);
                         $closingParts = explode(':', $value);
                         
                         if (count($openingParts) !== 2 || count($closingParts) !== 2) {
-                            $fail('Invalid time format.');
                             return;
                         }
                         
                         $openingMinutes = (int)$openingParts[0] * 60 + (int)$openingParts[1];
                         $closingMinutes = (int)$closingParts[0] * 60 + (int)$closingParts[1];
                         
-                        // Allow closing time to be after midnight (e.g., 22:00 to 02:00)
-                        // If closing is less than or equal to opening, assume it's the next day
                         if ($closingMinutes <= $openingMinutes) {
-                            $closingMinutes += 24 * 60; // Add 24 hours
+                            $closingMinutes += 24 * 60;
                         }
                         
-                        // Ensure at least 1 hour difference
                         if (($closingMinutes - $openingMinutes) < 60) {
                             $fail('The closing time must be at least 1 hour after the opening time.');
                         }
@@ -111,35 +98,12 @@ class RestaurantSettingsController extends Controller
             ], 422);
         }
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed. Please check your input.',
-                'errors' => $validator->errors(),
-                'debug' => [
-                    'raw_opening_time' => $request->input('opening_time'),
-                    'raw_closing_time' => $request->input('closing_time'),
-                    'normalized_opening_time' => $openingTime,
-                    'normalized_closing_time' => $closingTime,
-                ],
-            ], 422);
-        }
-
         $data = $validator->validated();
-        
-        // Ensure time values are properly formatted
         $data['opening_time'] = trim($data['opening_time']);
         $data['closing_time'] = trim($data['closing_time']);
         
-        $settings = RestaurantSetting::first();
-        
-        if (!$settings) {
-            $settings = RestaurantSetting::create($data);
-        } else {
-            $settings->update($data);
-        }
-
-        // Clear cache
+        $settings = RestaurantSetting::firstOrCreate([], $data);
+        $settings->update($data);
         RestaurantSetting::clearCache();
 
         return response()->json([

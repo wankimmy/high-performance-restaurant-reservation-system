@@ -16,8 +16,8 @@
                 </div>
                 <div class="ml-5 w-0 flex-1">
                     <dl>
-                        <dt class="text-sm font-medium text-gray-500 truncate">Today's Reservations</dt>
-                        <dd class="text-lg font-semibold text-gray-900">{{ \App\Models\Reservation::whereDate('reservation_date', today())->count() }}</dd>
+                    <dt class="text-sm font-medium text-gray-500 truncate">Today's Reservations</dt>
+                    <dd class="text-lg font-semibold text-gray-900">{{ $todayReservationsCount }}</dd>
                     </dl>
                 </div>
             </div>
@@ -34,8 +34,8 @@
                 </div>
                 <div class="ml-5 w-0 flex-1">
                     <dl>
-                        <dt class="text-sm font-medium text-gray-500 truncate">Total Reservations</dt>
-                        <dd class="text-lg font-semibold text-gray-900">{{ \App\Models\Reservation::count() }}</dd>
+                    <dt class="text-sm font-medium text-gray-500 truncate">Total Reservations</dt>
+                    <dd class="text-lg font-semibold text-gray-900">{{ $totalReservationsCount }}</dd>
                     </dl>
                 </div>
             </div>
@@ -52,8 +52,8 @@
                 </div>
                 <div class="ml-5 w-0 flex-1">
                     <dl>
-                        <dt class="text-sm font-medium text-gray-500 truncate">Total Tables</dt>
-                        <dd class="text-lg font-semibold text-gray-900">{{ \App\Models\Table::count() }}</dd>
+                    <dt class="text-sm font-medium text-gray-500 truncate">Total Tables</dt>
+                    <dd class="text-lg font-semibold text-gray-900">{{ $totalTablesCount }}</dd>
                     </dl>
                 </div>
             </div>
@@ -71,25 +71,7 @@
                 <div class="ml-5 w-0 flex-1">
                     <dl>
                         <dt class="text-sm font-medium text-gray-500 truncate">Available Tables</dt>
-                        <dd class="text-lg font-semibold text-gray-900">
-                            @php
-                                $today = now()->format('Y-m-d');
-                                $allTables = \App\Models\Table::all();
-                                $availableCount = 0;
-                                
-                                foreach ($allTables as $table) {
-                                    $hasBookingToday = \App\Models\Reservation::where('table_id', $table->id)
-                                        ->where('status', 'confirmed')
-                                        ->where('reservation_date', $today)
-                                        ->exists();
-                                    
-                                    if ($table->is_available && !$hasBookingToday) {
-                                        $availableCount++;
-                                    }
-                                }
-                            @endphp
-                            {{ $availableCount }}
-                        </dd>
+                        <dd class="text-lg font-semibold text-gray-900">{{ $availableTablesCount }}</dd>
                     </dl>
                 </div>
             </div>
@@ -143,7 +125,7 @@
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-                @forelse(\App\Models\Reservation::with('table')->latest()->take(5)->get() as $reservation)
+                @forelse($recentReservations as $reservation)
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm font-medium text-gray-900">{{ $reservation->customer_name }}</div>

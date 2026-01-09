@@ -18,21 +18,8 @@ class NotificationService
      */
     public function sendReservationConfirmation(Reservation $reservation): void
     {
-        // Format reservation date
-        // Handle both Carbon instance (when cast) and string (when not cast)
-        if ($reservation->reservation_date instanceof \Carbon\Carbon) {
-            $reservationDate = $reservation->reservation_date->format('F d, Y');
-        } else {
-            $reservationDate = \Carbon\Carbon::parse($reservation->reservation_date)->format('F d, Y');
-        }
-        
-        // Format reservation time (it's a string like "09:00:00", not a Carbon instance)
-        // Parse it as a time and format it
-        if (is_string($reservation->reservation_time)) {
-            $reservationTime = \Carbon\Carbon::createFromFormat('H:i:s', $reservation->reservation_time)->format('g:i A');
-        } else {
-            $reservationTime = \Carbon\Carbon::parse($reservation->reservation_time)->format('g:i A');
-        }
+        $reservationDate = \Carbon\Carbon::parse($reservation->reservation_date)->format('F d, Y');
+        $reservationTime = \Carbon\Carbon::createFromFormat('H:i:s', $reservation->reservation_time)->format('g:i A');
         
         $reservationDetails = [
             'id' => $reservation->id,

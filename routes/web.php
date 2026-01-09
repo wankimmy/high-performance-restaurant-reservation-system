@@ -1,44 +1,18 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminReservationController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\RestaurantSettingsController;
 use App\Http\Controllers\Admin\TableController;
+use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ProfileController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
-Route::get('/', function () {
-    return view('booking.index');
-})->name('home');
-
-Route::get('/verify-otp', function () {
-    return view('booking.verify-otp');
-})->name('booking.verify-otp');
-
-Route::get('/queue', function () {
-    return view('booking.queue');
-})->name('booking.queue');
-
-Route::get('/reservation/result', function (Request $request) {
-    $sessionId = $request->query('session_id');
-    $status = $request->query('status', 'failed');
-    $message = $request->query('message', '');
-    
-    $reservation = null;
-    if ($sessionId && $status === 'confirmed') {
-        $otp = \App\Models\Otp::where('session_id', $sessionId)->first();
-        if ($otp && $otp->reservation_id) {
-            $reservation = \App\Models\Reservation::with('table')->find($otp->reservation_id);
-        }
-    }
-    
-    return view('booking.result', [
-        'status' => $status,
-        'message' => $message,
-        'reservation' => $reservation,
-    ]);
-})->name('booking.result');
+Route::get('/', [BookingController::class, 'index'])->name('home');
+Route::get('/verify-otp', [BookingController::class, 'verifyOtp'])->name('booking.verify-otp');
+Route::get('/queue', [BookingController::class, 'queue'])->name('booking.queue');
+Route::get('/reservation/result', [BookingController::class, 'result'])->name('booking.result');
 
 // Authentication routes (Breeze)
 require __DIR__.'/auth.php';
@@ -46,9 +20,7 @@ require __DIR__.'/auth.php';
 // Admin routes (protected by authentication)
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
     // Dashboard
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
     // Reservations
     Route::get('/reservations', [AdminReservationController::class, 'index'])->name('reservations.index');
