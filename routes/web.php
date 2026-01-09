@@ -32,7 +32,9 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::get('/restaurant-settings', [RestaurantSettingsController::class, 'index'])->name('restaurant-settings.index');
     Route::post('/restaurant-settings/update', [RestaurantSettingsController::class, 'update'])->name('restaurant-settings.update');
     Route::get('/restaurant-settings/get', [RestaurantSettingsController::class, 'getSettings'])->name('restaurant-settings.get');
-    Route::post('/restaurant-settings/toggle-date', [RestaurantSettingsController::class, 'toggleDateStatus'])->name('restaurant-settings.toggle-date');
+    Route::post('/restaurant-settings/save-date-settings', [RestaurantSettingsController::class, 'saveDateSettings'])->name('restaurant-settings.save-date-settings');
+    Route::post('/restaurant-settings/close-date', [RestaurantSettingsController::class, 'closeDate'])->name('restaurant-settings.close-date');
+    Route::post('/restaurant-settings/reopen-date', [RestaurantSettingsController::class, 'reopenDate'])->name('restaurant-settings.reopen-date');
     
     // WhatsApp Settings
     Route::get('/whatsapp-settings', [\App\Http\Controllers\Admin\WhatsAppSettingsController::class, 'index'])->name('whatsapp-settings.index');

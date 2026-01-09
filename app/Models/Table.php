@@ -35,21 +35,22 @@ class Table extends Model
             return true;
         }
         
-        // Check if the requested time falls within any existing reservation's 1-hour block
-        // A reservation at 9:00am blocks the table from 9:00am to 9:59am (or 9:00am to 10:00am)
+        // Check if the requested time slot overlaps with any existing reservation's 1 hour 45 minute block
+        // A reservation at 9:00am blocks the table from 9:00am to 10:45am
         $requestedDateTime = \Carbon\Carbon::parse($date . ' ' . $time);
+        $requestedEndTime = $requestedDateTime->copy()->addMinutes(105); // Requested slot also lasts 1 hour 45 minutes
         
         $conflictingReservation = $this->reservations()
             ->where('reservation_date', $date)
             ->where('status', '!=', 'cancelled')
             ->get()
-            ->filter(function ($reservation) use ($requestedDateTime) {
+            ->filter(function ($reservation) use ($requestedDateTime, $requestedEndTime) {
                 $reservationDateTime = \Carbon\Carbon::parse($reservation->reservation_date->format('Y-m-d') . ' ' . $reservation->reservation_time);
-                $reservationEndTime = $reservationDateTime->copy()->addHour();
+                $reservationEndTime = $reservationDateTime->copy()->addMinutes(105); // 1 hour 45 minutes
                 
-                // Check if requested time falls within the reservation block (9:00am to 10:00am)
-                // Requested time should be >= reservation start and < reservation end
-                return $requestedDateTime->gte($reservationDateTime) && $requestedDateTime->lt($reservationEndTime);
+                // Check if the requested time slot overlaps with the reservation block
+                // Overlap occurs if: requested start < reservation end AND requested end > reservation start
+                return $requestedDateTime->lt($reservationEndTime) && $requestedEndTime->gt($reservationDateTime);
             })
             ->first();
         

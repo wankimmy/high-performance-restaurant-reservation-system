@@ -169,10 +169,11 @@
     let timeSlots = [];
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
-    // Fetch restaurant settings on page load
-    async function fetchRestaurantSettings() {
+    // Fetch restaurant settings (optionally for a specific date)
+    async function fetchRestaurantSettings(date = null) {
         try {
-            const response = await fetch(`${API_BASE}/restaurant-settings`);
+            const url = date ? `${API_BASE}/restaurant-settings?date=${date}` : `${API_BASE}/restaurant-settings`;
+            const response = await fetch(url);
             const data = await response.json();
             if (data.success && data.settings) {
                 depositPerPax = parseFloat(data.settings.deposit_per_pax) || 0;
@@ -183,10 +184,11 @@
         }
     }
 
-    // Fetch time slots on page load
-    async function fetchTimeSlots() {
+    // Fetch time slots (optionally for a specific date)
+    async function fetchTimeSlots(date = null) {
         try {
-            const response = await fetch(`${API_BASE}/time-slots`);
+            const url = date ? `${API_BASE}/time-slots?date=${date}` : `${API_BASE}/time-slots`;
+            const response = await fetch(url);
             const data = await response.json();
             if (data.success && data.time_slots) {
                 timeSlots = data.time_slots;
@@ -316,6 +318,10 @@
                     document.getElementById('selected_table_id').value = '';
                     document.getElementById('customerInfo').classList.add('hidden');
                     selectedTableData = null;
+                    
+                    // Fetch time slots and settings for the selected date
+                    fetchTimeSlots(dateStr);
+                    fetchRestaurantSettings(dateStr);
                     
                     // Trigger availability check if time and pax are also selected
                     if (selectedTime && selectedPax) {

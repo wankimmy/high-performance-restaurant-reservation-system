@@ -54,15 +54,8 @@ class ReservationController extends Controller
             ], 403);
         }
 
-        // Check if table is available
-        if (!$table->is_available) {
-            return response()->json([
-                'success' => false,
-                'message' => 'This table is not available',
-            ], 409);
-        }
-
         // Check if table already has a reservation at this time
+        // Availability is determined by checking reservations, not the is_available field
         if ($table->hasReservationAt($data['reservation_date'], $data['reservation_time'])) {
             return response()->json([
                 'success' => false,
@@ -92,8 +85,8 @@ class ReservationController extends Controller
                     ], 409);
                 }
 
-                // Calculate deposit amount
-                $depositAmount = RestaurantSetting::calculateDeposit($data['pax']);
+                // Calculate deposit amount (use per-date settings if available)
+                $depositAmount = ReservationSetting::calculateDepositForDate($data['reservation_date'], $data['pax']);
 
                 // Create pending reservation first
                 $reservation = Reservation::create([
@@ -179,9 +172,9 @@ class ReservationController extends Controller
             function () use ($data) {
                 $requestedDateTime = \Carbon\Carbon::parse($data['date'] . ' ' . $data['time']);
                 
-                // Get all tables that are available
-                $allTables = Table::where('is_available', true)
-                    ->where('capacity', '>=', $data['pax'] ?? 1)
+                // Get all tables that meet capacity requirements
+                // Availability is determined by checking reservations, not the is_available field
+                $allTables = Table::where('capacity', '>=', $data['pax'] ?? 1)
                     ->with(['reservations' => function ($q) use ($data) {
                         $q->where('reservation_date', $data['date'])
                             ->where('status', '!=', 'cancelled');
@@ -190,16 +183,18 @@ class ReservationController extends Controller
 
                 // Filter out tables that have conflicting reservations
                 $availableTables = $allTables->filter(function ($table) use ($requestedDateTime) {
+                    $requestedEndTime = $requestedDateTime->copy()->addMinutes(105); // Requested slot also lasts 1 hour 45 minutes
+                    
                     foreach ($table->reservations as $reservation) {
                         $reservationDateTime = \Carbon\Carbon::parse(
                             $reservation->reservation_date->format('Y-m-d') . ' ' . $reservation->reservation_time
                         );
-                        $reservationEndTime = $reservationDateTime->copy()->addHour();
+                        $reservationEndTime = $reservationDateTime->copy()->addMinutes(105); // 1 hour 45 minutes
                         
-                        // Check if requested time falls within the reservation's 1-hour block
-                        // A reservation at 9:00am blocks from 9:00am (inclusive) to 10:00am (exclusive)
-                        if ($requestedDateTime->gte($reservationDateTime) && $requestedDateTime->lt($reservationEndTime)) {
-                            return false; // Table is not available
+                        // Check if the requested time slot overlaps with any existing reservation
+                        // Overlap occurs if: requested start < reservation end AND requested end > reservation start
+                        if ($requestedDateTime->lt($reservationEndTime) && $requestedEndTime->gt($reservationDateTime)) {
+                            return false; // Table is not available due to overlap
                         }
                     }
                     return true; // Table is available
@@ -222,10 +217,13 @@ class ReservationController extends Controller
             }
         );
 
+        // Ensure tables is always an array, even when empty
+        $tablesArray = $availableTables->toArray();
+        
         return response()->json([
-            'available' => true,
-            'tables' => $availableTables,
-            'count' => $availableTables->count(),
+            'available' => count($tablesArray) > 0,
+            'tables' => $tablesArray,
+            'count' => count($tablesArray),
         ]);
     }
 
@@ -368,10 +366,26 @@ class ReservationController extends Controller
     }
 
     /**
-     * Get restaurant settings (API)
+     * Get restaurant settings (API) - optionally for a specific date
      */
-    public function getRestaurantSettings(): JsonResponse
+    public function getRestaurantSettings(Request $request): JsonResponse
     {
+        $date = $request->get('date');
+        
+        // Use per-date settings if date is provided, otherwise use global settings
+        if ($date) {
+            $dateSettings = ReservationSetting::getDateSettings($date);
+            return response()->json([
+                'success' => true,
+                'settings' => [
+                    'opening_time' => $dateSettings['opening_time'],
+                    'closing_time' => $dateSettings['closing_time'],
+                    'deposit_per_pax' => (float) $dateSettings['deposit_per_pax'],
+                    'time_slot_interval' => (int) $dateSettings['time_slot_interval'],
+                ],
+            ]);
+        }
+        
         $settings = RestaurantSetting::getSettings();
         
         return response()->json([
@@ -386,17 +400,26 @@ class ReservationController extends Controller
     }
 
     /**
-     * Get available time slots
+     * Get available time slots (optionally for a specific date)
      */
-    public function getTimeSlots(): JsonResponse
+    public function getTimeSlots(Request $request): JsonResponse
     {
-        $settings = RestaurantSetting::getSettings();
+        $date = $request->get('date');
+        
+        // Use per-date settings if date is provided, otherwise use global settings
+        if ($date) {
+            $dateSettings = ReservationSetting::getDateSettings($date);
+            $openingTime = \Carbon\Carbon::parse($dateSettings['opening_time']);
+            $closingTime = \Carbon\Carbon::parse($dateSettings['closing_time']);
+            $interval = $dateSettings['time_slot_interval'];
+        } else {
+            $settings = RestaurantSetting::getSettings();
+            $openingTime = \Carbon\Carbon::parse($settings->opening_time);
+            $closingTime = \Carbon\Carbon::parse($settings->closing_time);
+            $interval = $settings->time_slot_interval ?? 30;
+        }
+        
         $slots = [];
-        
-        $openingTime = \Carbon\Carbon::parse($settings->opening_time);
-        $closingTime = \Carbon\Carbon::parse($settings->closing_time);
-        $interval = $settings->time_slot_interval ?? 30;
-        
         $currentTime = $openingTime->copy();
         
         while ($currentTime->lt($closingTime)) {

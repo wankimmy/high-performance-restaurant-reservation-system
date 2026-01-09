@@ -8,26 +8,39 @@
 <div class="bg-white shadow-sm rounded-lg mb-6">
     <div class="px-6 py-4 border-b border-gray-200">
         <h3 class="text-lg font-medium text-gray-900">Filters</h3>
+        <p class="mt-1 text-sm text-gray-500">Table availability is determined by checking reservations for the selected date and time.</p>
     </div>
     <div class="p-6">
-        <form method="GET" action="{{ route('admin.tables.index') }}" class="grid grid-cols-1 gap-4 md:grid-cols-5">
-            <div>
-                <label for="is_available" class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                <select name="is_available" id="is_available" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    <option value="">All Tables</option>
-                    <option value="1" {{ request('is_available') == '1' ? 'selected' : '' }}>Available</option>
-                    <option value="0" {{ request('is_available') == '0' ? 'selected' : '' }}>Unavailable</option>
-                </select>
+        <form method="GET" action="{{ route('admin.tables.index') }}" class="space-y-4">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-6">
+                <div>
+                    <label for="check_date" class="block text-sm font-medium text-gray-700 mb-2">Check Availability Date</label>
+                    <input type="date" name="check_date" id="check_date" value="{{ $checkDate ?? request('check_date', now()->format('Y-m-d')) }}" 
+                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                </div>
+                <div>
+                    <label for="check_time" class="block text-sm font-medium text-gray-700 mb-2">Check Availability Time</label>
+                    <input type="time" name="check_time" id="check_time" value="{{ $checkTime ?? request('check_time', now()->format('H:i')) }}" 
+                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                </div>
+                <div>
+                    <label for="availability_status" class="block text-sm font-medium text-gray-700 mb-2">Availability Status</label>
+                    <select name="availability_status" id="availability_status" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="">All Tables</option>
+                        <option value="available" {{ request('availability_status') == 'available' ? 'selected' : '' }}>Available</option>
+                        <option value="unavailable" {{ request('availability_status') == 'unavailable' ? 'selected' : '' }}>Unavailable</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="min_capacity" class="block text-sm font-medium text-gray-700 mb-2">Min Capacity</label>
+                    <input type="number" name="min_capacity" id="min_capacity" value="{{ request('min_capacity') }}" min="1" max="20" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label for="max_capacity" class="block text-sm font-medium text-gray-700 mb-2">Max Capacity</label>
+                    <input type="number" name="max_capacity" id="max_capacity" value="{{ request('max_capacity') }}" min="1" max="20" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
             </div>
-            <div>
-                <label for="min_capacity" class="block text-sm font-medium text-gray-700 mb-2">Min Capacity</label>
-                <input type="number" name="min_capacity" id="min_capacity" value="{{ request('min_capacity') }}" min="1" max="20" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-            </div>
-            <div>
-                <label for="max_capacity" class="block text-sm font-medium text-gray-700 mb-2">Max Capacity</label>
-                <input type="number" name="max_capacity" id="max_capacity" value="{{ request('max_capacity') }}" min="1" max="20" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-            </div>
-            <div class="flex items-end gap-2">
+            <div class="flex items-end gap-2 mt-4">
                 <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
                     Filter
                 </button>
@@ -70,38 +83,70 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div>
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $table->is_available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                    {{ $table->is_available ? 'Available' : 'Unavailable' }}
+                                @php
+                                    $isAvailable = isset($table->is_available_at_check_time) ? $table->is_available_at_check_time : true;
+                                    $checkDateFormatted = $checkDate ?? now()->format('Y-m-d');
+                                    $checkTimeFormatted = $checkTime ?? now()->format('H:i');
+                                    $checkDateTime = \Carbon\Carbon::parse($checkDateFormatted . ' ' . $checkTimeFormatted);
+                                @endphp
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                    {{ $isAvailable ? 'Available' : 'Unavailable' }}
                                 </span>
-                                @if(!$table->is_available && $table->reservations && $table->reservations->count() > 0)
+                                @if(!$isAvailable && $table->reservations && $table->reservations->count() > 0)
                                     @php
-                                        $nextReservation = $table->reservations->first();
-                                        if ($nextReservation) {
-                                            $reservationDateTime = \Carbon\Carbon::parse($nextReservation->reservation_date->format('Y-m-d') . ' ' . $nextReservation->reservation_time);
-                                            $releaseTime = $reservationDateTime->copy()->addHour();
+                                        // Find the reservation that conflicts with the checked time
+                                        $conflictingReservation = null;
+                                        foreach ($table->reservations as $reservation) {
+                                            $reservationDateTime = \Carbon\Carbon::parse($reservation->reservation_date->format('Y-m-d') . ' ' . $reservation->reservation_time);
+                                            $reservationEndTime = $reservationDateTime->copy()->addMinutes(105);
+                                            $checkEndTime = $checkDateTime->copy()->addMinutes(105);
+                                            
+                                            if ($checkDateTime->lt($reservationEndTime) && $checkEndTime->gt($reservationDateTime)) {
+                                                $conflictingReservation = $reservation;
+                                                break;
+                                            }
                                         }
                                     @endphp
-                                    @if(isset($releaseTime) && $releaseTime->isFuture())
+                                    @if($conflictingReservation)
+                                        @php
+                                            $reservationDateTime = \Carbon\Carbon::parse($conflictingReservation->reservation_date->format('Y-m-d') . ' ' . $conflictingReservation->reservation_time);
+                                            $releaseTime = $reservationDateTime->copy()->addMinutes(105);
+                                        @endphp
                                         <div class="text-xs text-gray-500 mt-1">
-                                            Auto-available: {{ $releaseTime->format('M d, g:i A') }}
+                                            Booked until: {{ $releaseTime->format('g:i A') }}
                                         </div>
-                                    @elseif(isset($releaseTime) && $releaseTime->isPast())
-                                        <div class="text-xs text-yellow-600 mt-1">
-                                            Should be available (checking...)
+                                        <div class="text-xs text-gray-400 mt-0.5">
+                                            Customer: {{ $conflictingReservation->customer_name }}
                                         </div>
                                     @endif
                                 @endif
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            <div class="font-medium">{{ $table->reservations_count }}</div>
                             @if($table->reservations && $table->reservations->count() > 0)
                                 @php
-                                    $nextReservation = $table->reservations->first();
+                                    $checkDateFormatted = $checkDate ?? now()->format('Y-m-d');
+                                    $reservationsOnDate = $table->reservations->filter(function($res) use ($checkDateFormatted) {
+                                        return $res->reservation_date->format('Y-m-d') === $checkDateFormatted;
+                                    })->sortBy('reservation_time');
                                 @endphp
-                                @if($nextReservation)
-                                    <div class="text-xs text-gray-500">
-                                        Next: {{ \Carbon\Carbon::parse($nextReservation->reservation_date->format('Y-m-d') . ' ' . $nextReservation->reservation_time)->format('M d, g:i A') }}
+                                @if($reservationsOnDate->count() > 0)
+                                    <div class="text-xs text-gray-500 mt-1">
+                                        {{ $reservationsOnDate->count() }} on {{ \Carbon\Carbon::parse($checkDateFormatted)->format('M d') }}
+                                    </div>
+                                    @foreach($reservationsOnDate->take(2) as $reservation)
+                                        <div class="text-xs text-gray-400 mt-0.5">
+                                            • {{ \Carbon\Carbon::parse($reservation->reservation_time)->format('g:i A') }} - {{ $reservation->customer_name }}
+                                        </div>
+                                    @endforeach
+                                    @if($reservationsOnDate->count() > 2)
+                                        <div class="text-xs text-gray-400 mt-0.5">
+                                            +{{ $reservationsOnDate->count() - 2 }} more
+                                        </div>
+                                    @endif
+                                @else
+                                    <div class="text-xs text-gray-400 mt-1">
+                                        No reservations on {{ \Carbon\Carbon::parse($checkDateFormatted)->format('M d') }}
                                     </div>
                                 @endif
                             @endif

@@ -85,53 +85,134 @@
     <div class="bg-white shadow-sm rounded-lg">
         <div class="px-6 py-4 border-b border-gray-200">
             <h3 class="text-lg font-medium text-gray-900">Date Settings</h3>
+            <p class="mt-1 text-sm text-gray-500">Configure settings for specific dates. By default, all dates use the global restaurant settings above.</p>
         </div>
         <div class="p-6">
-            <!-- Add/Update Date Setting Form -->
-            <form id="dateSettingsForm" class="mb-6">
+            <!-- Add/Edit Date Settings Form -->
+            <form id="dateSettingsForm" class="mb-6 border-b border-gray-200 pb-6">
                 <div class="mb-4">
-                    <label for="date" class="block text-sm font-medium text-gray-700 mb-2">Date <span class="text-red-500">*</span></label>
-                    <input type="date" id="date" name="date" required min="{{ date('Y-m-d') }}"
+                    <label for="date_setting_date" class="block text-sm font-medium text-gray-700 mb-2">Date <span class="text-red-500">*</span></label>
+                    <input type="date" id="date_setting_date" name="date" required min="{{ date('Y-m-d') }}"
                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <p class="mt-1 text-sm text-gray-500">Select a date to configure</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="date_opening_time" class="block text-sm font-medium text-gray-700 mb-2">Opening Time</label>
+                        <input type="time" id="date_opening_time" name="opening_time" 
+                               class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                               placeholder="Leave empty to use global setting">
+                        <p class="mt-1 text-xs text-gray-500">Leave empty for global setting</p>
+                    </div>
+                    <div>
+                        <label for="date_closing_time" class="block text-sm font-medium text-gray-700 mb-2">Closing Time</label>
+                        <input type="time" id="date_closing_time" name="closing_time" 
+                               class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                               placeholder="Leave empty to use global setting">
+                        <p class="mt-1 text-xs text-gray-500">Leave empty for global setting</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="date_time_slot_interval" class="block text-sm font-medium text-gray-700 mb-2">Time Slot Interval (minutes)</label>
+                        <input type="number" id="date_time_slot_interval" name="time_slot_interval" min="15" max="120" step="15"
+                               class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                               placeholder="Leave empty to use global setting">
+                        <p class="mt-1 text-xs text-gray-500">Leave empty for global setting</p>
+                    </div>
+                    <div>
+                        <label for="date_deposit_per_pax" class="block text-sm font-medium text-gray-700 mb-2">Deposit per Person (RM)</label>
+                        <input type="number" id="date_deposit_per_pax" name="deposit_per_pax" min="0" step="0.01"
+                               class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                               placeholder="Leave empty to use global setting">
+                        <p class="mt-1 text-xs text-gray-500">Leave empty for global setting</p>
+                    </div>
                 </div>
                 
                 <div class="mb-4">
                     <div class="flex items-center">
-                        <input type="checkbox" id="is_open" name="is_open" checked
+                        <input type="checkbox" id="date_is_open" name="is_open" checked
                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                        <label for="is_open" class="ml-2 block text-sm text-gray-900">
+                        <label for="date_is_open" class="ml-2 block text-sm text-gray-900">
                             Open for Reservations
                         </label>
                     </div>
-                    <p class="mt-1 text-sm text-gray-500">Toggle to open or close this date for reservations</p>
+                    <p class="mt-1 text-sm text-gray-500">Uncheck to close this date for reservations</p>
                 </div>
                 
                 <button type="submit" class="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
-                    Save Date Setting
+                    Save Date Settings
                 </button>
             </form>
 
-            <!-- Current Date Settings List -->
-            <div class="border-t border-gray-200 pt-4">
-                <h4 class="text-sm font-medium text-gray-900 mb-3">Current Date Settings</h4>
+            <!-- Quick Close Date Form -->
+            <form id="closeDateForm" class="mb-6 border-b border-gray-200 pb-6">
+                <div class="mb-4">
+                    <label for="close_date" class="block text-sm font-medium text-gray-700 mb-2">Quick Close Date</label>
+                    <input type="date" id="close_date" name="date" required min="{{ date('Y-m-d') }}"
+                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <p class="mt-1 text-sm text-gray-500">Quickly close a date without custom settings</p>
+                </div>
+                
+                <button type="submit" class="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700">
+                    Close Date
+                </button>
+            </form>
+
+            <!-- Date Settings List -->
+            <div class="pt-4">
+                <h4 class="text-sm font-medium text-gray-900 mb-3">Configured Dates</h4>
                 <div class="space-y-2 max-h-96 overflow-y-auto">
                     @forelse($dateSettings as $setting)
+                    @php
+                        $hasCustomSettings = !empty($setting->opening_time) || !empty($setting->closing_time) || 
+                                            !empty($setting->time_slot_interval) || !empty($setting->deposit_per_pax);
+                    @endphp
                     <div class="flex items-center justify-between p-4 rounded-lg border {{ $setting->is_open ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200' }}">
-                        <div>
+                        <div class="flex-1">
                             <div class="font-medium text-gray-900">{{ $setting->date->format('l, M d, Y') }}</div>
-                            <span class="mt-1 inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $setting->is_open ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                {{ $setting->is_open ? 'Open' : 'Closed' }}
-                            </span>
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $setting->is_open ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                    {{ $setting->is_open ? 'Open' : 'Closed' }}
+                                </span>
+                                @if($hasCustomSettings)
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                        Custom Settings
+                                    </span>
+                                @endif
+                                @if($setting->opening_time || $setting->closing_time)
+                                    <span class="text-xs text-gray-600">
+                                        {{ $setting->opening_time ? \Carbon\Carbon::parse($setting->opening_time)->format('g:i A') : 'Default' }} - 
+                                        {{ $setting->closing_time ? \Carbon\Carbon::parse($setting->closing_time)->format('g:i A') : 'Default' }}
+                                    </span>
+                                @endif
+                                @if($setting->time_slot_interval)
+                                    <span class="text-xs text-gray-600">Interval: {{ $setting->time_slot_interval }}min</span>
+                                @endif
+                                @if($setting->deposit_per_pax)
+                                    <span class="text-xs text-gray-600">Deposit: RM{{ number_format($setting->deposit_per_pax, 2) }}/pax</span>
+                                @endif
+                            </div>
                         </div>
-                        <button onclick="toggleDate('{{ $setting->date->format('Y-m-d') }}', {{ $setting->is_open ? 'false' : 'true' }}, this)"
-                                class="px-3 py-1 text-sm rounded-md {{ $setting->is_open ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700' }} text-white">
-                            {{ $setting->is_open ? 'Close' : 'Open' }}
-                        </button>
+                        <div class="flex items-center gap-2 ml-4">
+                            <button onclick="editDateSettings('{{ $setting->date->format('Y-m-d') }}', {{ $setting->is_open ? 'true' : 'false' }}, '{{ $setting->opening_time ?? '' }}', '{{ $setting->closing_time ?? '' }}', {{ $setting->time_slot_interval ?? 'null' }}, {{ $setting->deposit_per_pax ?? 'null' }})"
+                                    class="px-3 py-1 text-sm rounded-md bg-blue-600 hover:bg-blue-700 text-white">
+                                Edit
+                            </button>
+                            @if(!$setting->is_open)
+                                <button onclick="reopenDate('{{ $setting->date->format('Y-m-d') }}', this)"
+                                        class="px-3 py-1 text-sm rounded-md bg-green-600 hover:bg-green-700 text-white">
+                                    Reopen
+                                </button>
+                            @endif
+                        </div>
                     </div>
                     @empty
                     <div class="text-center py-8 text-gray-500">
                         <p>No date settings configured.</p>
-                        <p class="text-sm mt-1">Dates are open by default.</p>
+                        <p class="text-sm mt-1">All dates use global restaurant settings by default.</p>
                     </div>
                     @endforelse
                 </div>
@@ -210,12 +291,23 @@
         setButtonLoading(submitBtn, true, originalText);
         
         const data = {
-            date: document.getElementById('date').value,
-            is_open: document.getElementById('is_open').checked
+            date: document.getElementById('date_setting_date').value,
+            is_open: document.getElementById('date_is_open').checked,
+            opening_time: document.getElementById('date_opening_time').value || null,
+            closing_time: document.getElementById('date_closing_time').value || null,
+            time_slot_interval: document.getElementById('date_time_slot_interval').value || null,
+            deposit_per_pax: document.getElementById('date_deposit_per_pax').value || null,
         };
 
+        // Remove null values
+        Object.keys(data).forEach(key => {
+            if (data[key] === null || data[key] === '') {
+                delete data[key];
+            }
+        });
+
         try {
-            const response = await fetch('/admin/restaurant-settings/toggle-date', {
+            const response = await fetch('/admin/restaurant-settings/save-date-settings', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -229,44 +321,120 @@
 
             setButtonLoading(submitBtn, false, originalText);
             if (result.success) {
-                showToast('Date setting saved successfully', 'success');
+                showToast('Date settings saved successfully', 'success');
+                // Reset form
+                document.getElementById('dateSettingsForm').reset();
                 setTimeout(() => location.reload(), 1000);
             } else {
-                showToast(result.message || 'Failed to save date setting', 'error');
+                let errorMessage = result.message || 'Failed to save date settings';
+                if (result.errors) {
+                    const errorList = Object.values(result.errors).flat().join(', ');
+                    errorMessage = errorMessage + ': ' + errorList;
+                }
+                showToast(errorMessage, 'error');
             }
         } catch (error) {
             setButtonLoading(submitBtn, false, originalText);
-            showToast('Error saving date setting', 'error');
+            showToast('Error saving date settings', 'error');
         }
     });
 
-    function toggleDate(date, isOpen, button) {
+    // Close Date Form
+    document.getElementById('closeDateForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        setButtonLoading(submitBtn, true, originalText);
+        
+        const date = document.getElementById('close_date').value;
+
+        try {
+            const response = await fetch('/admin/restaurant-settings/close-date', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ date })
+            });
+
+            const result = await response.json();
+
+            setButtonLoading(submitBtn, false, originalText);
+            if (result.success) {
+                showToast('Date closed successfully', 'success');
+                document.getElementById('close_date').value = '';
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showToast(result.message || 'Failed to close date', 'error');
+            }
+        } catch (error) {
+            setButtonLoading(submitBtn, false, originalText);
+            showToast('Error closing date', 'error');
+        }
+    });
+
+    // Edit Date Settings
+    function editDateSettings(date, isOpen, openingTime, closingTime, timeSlotInterval, depositPerPax) {
+        document.getElementById('date_setting_date').value = date;
+        document.getElementById('date_is_open').checked = isOpen;
+        
+        // Format time values for time inputs (HH:MM format)
+        if (openingTime && openingTime !== 'null' && openingTime !== '') {
+            // If it's in H:i:s format, convert to H:i
+            const openingTimeFormatted = openingTime.includes(':') ? openingTime.substring(0, 5) : openingTime;
+            document.getElementById('date_opening_time').value = openingTimeFormatted;
+        } else {
+            document.getElementById('date_opening_time').value = '';
+        }
+        
+        if (closingTime && closingTime !== 'null' && closingTime !== '') {
+            const closingTimeFormatted = closingTime.includes(':') ? closingTime.substring(0, 5) : closingTime;
+            document.getElementById('date_closing_time').value = closingTimeFormatted;
+        } else {
+            document.getElementById('date_closing_time').value = '';
+        }
+        
+        document.getElementById('date_time_slot_interval').value = (timeSlotInterval && timeSlotInterval !== 'null') ? timeSlotInterval : '';
+        document.getElementById('date_deposit_per_pax').value = (depositPerPax && depositPerPax !== 'null') ? depositPerPax : '';
+        
+        // Scroll to form
+        document.getElementById('dateSettingsForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function reopenDate(date, button) {
+        if (!confirm('Are you sure you want to reopen this date? It will be available for reservations again.')) {
+            return;
+        }
+
         if (!button) return;
         const originalText = button.innerHTML;
         setButtonLoading(button, true, originalText);
 
-        fetch('/admin/restaurant-settings/toggle-date', {
+        fetch('/admin/restaurant-settings/reopen-date', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': csrfToken,
                 'Accept': 'application/json'
             },
-            body: JSON.stringify({ date, is_open: isOpen })
+            body: JSON.stringify({ date })
         })
         .then(response => response.json())
         .then(data => {
             setButtonLoading(button, false, originalText);
             if (data.success) {
-                showToast('Date setting updated successfully', 'success');
+                showToast('Date reopened successfully', 'success');
                 setTimeout(() => location.reload(), 1000);
             } else {
-                showToast(data.message || 'Failed to update date setting', 'error');
+                showToast(data.message || 'Failed to reopen date', 'error');
             }
         })
         .catch(error => {
             setButtonLoading(button, false, originalText);
-            showToast('Error updating date setting', 'error');
+            showToast('Error reopening date', 'error');
         });
     }
 

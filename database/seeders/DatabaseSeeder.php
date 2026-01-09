@@ -30,6 +30,9 @@ class DatabaseSeeder extends Seeder
             Table::create($table);
         }
         
+        // Seed dummy reservations
+        $this->call(ReservationSeeder::class);
+        
         $this->command->info('Database seeded successfully!');
     }
 }

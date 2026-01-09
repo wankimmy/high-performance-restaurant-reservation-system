@@ -17,42 +17,98 @@ class TableController extends Controller
      */
     public function index(Request $request): View|JsonResponse
     {
-        $query = Table::withCount('reservations')
-            ->with(['reservations' => function ($q) {
-                $q->where('status', 'confirmed')
-                  ->where(function ($query) {
-                      $query->where('reservation_date', '>', now()->format('Y-m-d'))
-                            ->orWhere(function ($q) {
-                                $q->where('reservation_date', now()->format('Y-m-d'))
-                                  ->where('reservation_time', '>=', now()->format('H:i'));
-                            });
-                  })
-                  ->orderBy('reservation_date')
-                  ->orderBy('reservation_time')
-                  ->limit(1);
+        // Get date and time for availability check (default to today and current time)
+        $checkDate = $request->get('check_date', now()->format('Y-m-d'));
+        $checkTime = $request->get('check_time', now()->format('H:i'));
+        $checkDateTime = \Carbon\Carbon::parse($checkDate . ' ' . $checkTime);
+        
+        $query = Table::with(['reservations' => function ($q) use ($checkDate) {
+                // Get all future reservations for this table on the checked date
+                $q->where('reservation_date', $checkDate)
+                  ->where('status', '!=', 'cancelled')
+                  ->orderBy('reservation_time');
             }])
             ->orderBy('name');
 
-        // Filter by availability
-        if ($request->has('is_available')) {
-            $query->where('is_available', $request->boolean('is_available'));
-        }
-
         // Filter by capacity
-        if ($request->has('min_capacity')) {
+        if ($request->filled('min_capacity')) {
             $query->where('capacity', '>=', $request->min_capacity);
         }
-        if ($request->has('max_capacity')) {
+        if ($request->filled('max_capacity')) {
             $query->where('capacity', '<=', $request->max_capacity);
         }
 
-        $tables = $query->paginate(50);
+        $tables = $query->get();
+        
+        // Calculate availability for each table based on reservations
+        $tables = $tables->map(function ($table) use ($checkDateTime) {
+            $table->is_available_at_check_time = $this->isTableAvailableAt($table, $checkDateTime);
+            return $table;
+        });
+        
+        // Filter by availability if requested
+        if ($request->filled('availability_status')) {
+            $status = $request->get('availability_status');
+            if ($status === 'available') {
+                $tables = $tables->filter(fn($table) => $table->is_available_at_check_time);
+            } elseif ($status === 'unavailable') {
+                $tables = $tables->filter(fn($table) => !$table->is_available_at_check_time);
+            }
+        }
+
+        // Paginate manually since we've modified the collection
+        $perPage = 50;
+        $currentPage = $request->get('page', 1);
+        
+        // Preserve all query parameters for pagination links
+        $queryParams = $request->except('page');
+        $tables = new \Illuminate\Pagination\LengthAwarePaginator(
+            $tables->forPage($currentPage, $perPage),
+            $tables->count(),
+            $perPage,
+            $currentPage,
+            [
+                'path' => $request->url(),
+                'query' => $queryParams
+            ]
+        );
 
         if ($request->expectsJson()) {
             return response()->json($tables);
         }
 
-        return view('admin.tables.index', compact('tables'));
+        return view('admin.tables.index', compact('tables', 'checkDate', 'checkTime'));
+    }
+    
+    /**
+     * Check if a table is available at a specific date and time based on reservations
+     */
+    private function isTableAvailableAt(Table $table, \Carbon\Carbon $checkDateTime): bool
+    {
+        $checkDate = $checkDateTime->format('Y-m-d');
+        $checkTime = $checkDateTime->format('H:i');
+        $checkEndTime = $checkDateTime->copy()->addMinutes(105); // 1 hour 45 minutes
+        
+        // Get all reservations for this table on the checked date
+        $reservations = $table->reservations()
+            ->where('reservation_date', $checkDate)
+            ->where('status', '!=', 'cancelled')
+            ->get();
+        
+        // Check if any reservation overlaps with the checked time slot
+        foreach ($reservations as $reservation) {
+            $reservationDateTime = \Carbon\Carbon::parse(
+                $reservation->reservation_date->format('Y-m-d') . ' ' . $reservation->reservation_time
+            );
+            $reservationEndTime = $reservationDateTime->copy()->addMinutes(105);
+            
+            // Check for overlap: check start < reservation end AND check end > reservation start
+            if ($checkDateTime->lt($reservationEndTime) && $checkEndTime->gt($reservationDateTime)) {
+                return false; // Table is not available due to overlap
+            }
+        }
+        
+        return true; // Table is available
     }
 
     /**
@@ -176,7 +232,8 @@ class TableController extends Controller
     }
 
     /**
-     * Toggle table availability.
+     * Toggle table availability (for maintenance purposes only).
+     * Note: Booking availability is determined by reservations, not this field.
      */
     public function toggleAvailability(Request $request, Table $table): JsonResponse
     {
@@ -185,7 +242,7 @@ class TableController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Table availability updated',
+            'message' => 'Table maintenance status updated. Note: Booking availability is based on reservations.',
             'table' => $table,
         ]);
     }

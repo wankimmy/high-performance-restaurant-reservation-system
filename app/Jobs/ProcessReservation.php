@@ -69,12 +69,8 @@ class ProcessReservation implements ShouldQueue
 
             $table = $reservation->table;
 
-            // Mark table as unavailable when booked
-            // It will be auto-released after 1 hour by the scheduled command
-            $table->is_available = false;
-            $table->save();
-
             // Clear availability cache
+            // Note: Table availability is now determined by checking reservations, not the is_available field
             Cache::forget("available_tables_{$reservation->reservation_date}_{$reservation->reservation_time}");
 
             // Send confirmation notifications
