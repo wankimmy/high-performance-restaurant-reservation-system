@@ -114,8 +114,9 @@
 
             const result = await response.json();
 
-            if (result.success) {
-                // Redirect to queue page
+            if (result.success || response.status === 202) {
+                // OTP verified, confirmation is being processed asynchronously
+                // Redirect to queue page to wait for confirmation
                 window.location.href = `/queue?session_id=${sessionId}&reservation_id=${reservationId || ''}`;
             } else {
                 setButtonLoading(verifyBtn, false, originalText);

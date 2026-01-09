@@ -17,12 +17,6 @@ class Kernel extends ConsoleKernel
         
         // Auto-release tables 1 hour after reservation time (runs every 5 minutes)
         $schedule->command('tables:auto-release')->everyFiveMinutes();
-        
-        // Laravel Pulse: Process ingested data every minute
-        $schedule->command('pulse:ingest')->everyMinute()->withoutOverlapping();
-        
-        // Laravel Pulse: Trim old data daily
-        $schedule->command('pulse:trim')->daily();
     }
 
     protected function commands(): void

@@ -93,12 +93,12 @@
                             WhatsApp Settings
                         </a>
                         
-                        <a href="/pulse" 
-                           class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium rounded-md {{ request()->is('pulse*') ? 'active' : 'text-gray-700' }}">
+                        <a href="{{ route('admin.stress-test.index') }}" 
+                           class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.stress-test.*') ? 'active' : 'text-gray-700' }}">
                             <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                             </svg>
-                            Pulse
+                            Stress Test
                         </a>
                     </nav>
                     

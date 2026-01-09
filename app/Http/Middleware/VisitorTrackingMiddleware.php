@@ -12,6 +12,11 @@ class VisitorTrackingMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
+        // Skip tracking for admin routes
+        if ($request->is('admin/*')) {
+            return $next($request);
+        }
+        
         // Only track visitors on booking page and API
         if ($request->is('/') || $request->is('api/*')) {
             $ip = $request->ip();

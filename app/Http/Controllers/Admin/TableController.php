@@ -18,8 +18,8 @@ class TableController extends Controller
     public function index(Request $request): View|JsonResponse
     {
         // Get date and time for availability check (default to today and current time)
-        $checkDate = $request->get('check_date', now()->format('Y-m-d'));
-        $checkTime = $request->get('check_time', now()->format('H:i'));
+        $checkDate = $request->query('check_date', now()->format('Y-m-d'));
+        $checkTime = $request->query('check_time', now()->format('H:i'));
         $checkDateTime = \Carbon\Carbon::parse($checkDate . ' ' . $checkTime);
         
         $query = Table::with(['reservations' => function ($q) use ($checkDate) {
@@ -48,7 +48,7 @@ class TableController extends Controller
         
         // Filter by availability if requested
         if ($request->filled('availability_status')) {
-            $status = $request->get('availability_status');
+            $status = $request->query('availability_status');
             if ($status === 'available') {
                 $tables = $tables->filter(fn($table) => $table->is_available_at_check_time);
             } elseif ($status === 'unavailable') {
@@ -58,7 +58,7 @@ class TableController extends Controller
 
         // Paginate manually since we've modified the collection
         $perPage = 50;
-        $currentPage = $request->get('page', 1);
+        $currentPage = $request->query('page', 1);
         
         // Preserve all query parameters for pagination links
         $queryParams = $request->except('page');

@@ -48,6 +48,11 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::resource('tables', TableController::class)->except(['show']);
     Route::post('/tables/{table}/toggle-availability', [TableController::class, 'toggleAvailability'])->name('tables.toggle');
     
+    // Stress Test
+    Route::get('/stress-test', [\App\Http\Controllers\Admin\StressTestController::class, 'index'])->name('stress-test.index');
+    Route::post('/stress-test/run', [\App\Http\Controllers\Admin\StressTestController::class, 'runTest'])->name('stress-test.run');
+    Route::get('/stress-test/server-type', [\App\Http\Controllers\Admin\StressTestController::class, 'getServerType'])->name('stress-test.server-type');
+    
 });
 
 // Profile routes (Breeze)

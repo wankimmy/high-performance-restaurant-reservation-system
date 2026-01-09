@@ -122,8 +122,6 @@ Compare the results to see performance differences!
 
 ## Monitoring During Tests
 
-### Laravel Pulse Dashboard
-Monitor real-time performance at: http://localhost:8000/pulse
 
 ### Container Resources
 ```bash
@@ -180,7 +178,7 @@ Transfer rate:          421.23 [Kbytes/sec] received
 4. **Compare Configurations**: Test both Nginx and Swoole setups
 5. **Document Results**: Keep track of performance metrics
 6. **Test Different Endpoints**: Don't just test the homepage
-7. **Use Pulse**: Monitor application performance in real-time
+7. **Monitor**: Check application logs and metrics
 
 ## Troubleshooting
 
@@ -208,7 +206,7 @@ docker-compose run --rm stress-test wrk -t2 -c20 -d30s http://app:80/
 ### Slow Response Times
 - Check database connection pool
 - Monitor Redis cache hit rates
-- Review Laravel Pulse for slow queries
+- Review application logs for slow queries
 - Check queue worker status
 
 ## Advanced Usage
@@ -255,5 +253,4 @@ wrk -t4 -c50 -d30s --script=test.lua http://app:80/
 - [wrk Documentation](https://github.com/wg/wrk)
 - [Apache Bench Documentation](https://httpd.apache.org/docs/2.4/programs/ab.html)
 - [hey Documentation](https://github.com/rakyll/hey)
-- [Laravel Pulse Documentation](https://laravel.com/docs/pulse)
 

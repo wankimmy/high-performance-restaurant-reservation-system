@@ -3,13 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Jobs\ProcessReservation;
+use App\Jobs\ConfirmReservation;
+use App\Jobs\CreateReservation;
 use App\Models\Reservation;
 use App\Models\ReservationSetting;
 use App\Models\RestaurantSetting;
 use App\Models\Table;
 use App\Services\OtpService;
 use App\Services\WhatsAppService;
+use Illuminate\Support\Str;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -71,13 +73,13 @@ class ReservationController extends Controller
             ], 422);
         }
 
-        // Use Redis lock to prevent race conditions
+        // Use Redis lock to prevent race conditions (lightweight check only)
         $lockKey = "reservation_lock_{$data['table_id']}_{$data['reservation_date']}_{$data['reservation_time']}";
-        $lock = Cache::lock($lockKey, 10);
+        $lock = Cache::lock($lockKey, 5);
 
         try {
             if ($lock->get()) {
-                // Double-check availability after acquiring lock
+                // Quick availability check (no DB write)
                 if ($table->hasReservationAt($data['reservation_date'], $data['reservation_time'])) {
                     return response()->json([
                         'success' => false,
@@ -85,45 +87,42 @@ class ReservationController extends Controller
                     ], 409);
                 }
 
-                // Calculate deposit amount (use per-date settings if available)
-                $depositAmount = ReservationSetting::calculateDepositForDate($data['reservation_date'], $data['pax']);
+                // Generate session ID for tracking
+                $sessionId = Str::uuid()->toString();
 
-                // Create pending reservation first
-                $reservation = Reservation::create([
+                // Store reservation data temporarily in cache (10 minutes)
+                Cache::put("reservation_data_{$sessionId}", [
                     'table_id' => $data['table_id'],
                     'customer_name' => $data['customer_name'],
                     'customer_email' => $data['customer_email'],
                     'customer_phone' => $data['customer_phone'],
                     'pax' => $data['pax'],
-                    'deposit_amount' => $depositAmount,
                     'reservation_date' => $data['reservation_date'],
                     'reservation_time' => $data['reservation_time'],
                     'notes' => $data['notes'] ?? null,
-                    'status' => 'pending',
                     'ip_address' => $request->ip(),
                     'user_agent' => $request->userAgent(),
-                ]);
+                ], 600);
 
-                // Generate OTP
-                $otpData = $this->otpService->generateOtp($data['customer_phone'], $reservation->id);
-                
-                // Get OTP code from database
-                $otp = $this->otpService->getOtpBySession($otpData['session_id']);
-                
-                // Send OTP via WhatsApp
-                if ($otp) {
-                    $this->whatsAppService->sendOtp($data['customer_phone'], $otp->otp_code, $data['customer_name']);
-                }
+                // Initialize status in cache
+                Cache::put("reservation_status_{$sessionId}", [
+                    'status' => 'processing',
+                    'message' => 'Creating reservation...',
+                ], 600);
 
-                // Update reservation with OTP session ID
-                $reservation->update(['otp_session_id' => $otpData['session_id']]);
+                // Queue reservation creation (async - no DB write in request)
+                CreateReservation::dispatch(
+                    $data,
+                    $sessionId,
+                    $request->ip(),
+                    $request->userAgent()
+                )->afterResponse();
 
                 return response()->json([
                     'success' => true,
-                    'message' => 'OTP sent to your WhatsApp number',
-                    'session_id' => $otpData['session_id'],
-                    'reservation_id' => $reservation->id,
-                ], 200);
+                    'message' => 'Reservation request received. Processing...',
+                    'session_id' => $sessionId,
+                ], 202); // 202 Accepted - request is being processed
             } else {
                 return response()->json([
                     'success' => false,
@@ -277,29 +276,28 @@ class ReservationController extends Controller
         );
 
         if ($result['success']) {
-            // Update reservation status to confirmed
-            $reservation = Reservation::find($result['reservation_id']);
-            if ($reservation) {
-                $reservation->update([
-                    'status' => 'confirmed',
-                    'otp_verified' => true,
-                ]);
+            // Get reservation ID from OTP
+            $otp = $this->otpService->getOtpBySession($request->session_id);
+            
+            if ($otp && $otp->reservation_id) {
+                // Update status in cache immediately
+                Cache::put("reservation_status_{$request->session_id}", [
+                    'status' => 'confirming',
+                    'reservation_id' => $otp->reservation_id,
+                    'message' => 'Confirming reservation...',
+                ], 600);
 
-                // Mark table as unavailable
-                $reservation->table->update(['is_available' => false]);
-
-                // Dispatch job to send notifications
-                ProcessReservation::dispatch(
-                    array_merge($reservation->toArray(), ['id' => $reservation->id]),
-                    $reservation->ip_address,
-                    $reservation->user_agent
+                // Queue confirmation (async - no DB write in request)
+                ConfirmReservation::dispatch(
+                    $otp->reservation_id,
+                    $request->session_id
                 )->afterResponse();
 
                 return response()->json([
                     'success' => true,
-                    'message' => 'Reservation confirmed successfully',
-                    'status' => 'confirmed',
-                ]);
+                    'message' => 'OTP verified. Confirming reservation...',
+                    'status' => 'processing',
+                ], 202); // 202 Accepted - request is being processed
             }
         }
 
@@ -370,7 +368,7 @@ class ReservationController extends Controller
      */
     public function getRestaurantSettings(Request $request): JsonResponse
     {
-        $date = $request->get('date');
+        $date = $request->query('date');
         
         // Use per-date settings if date is provided, otherwise use global settings
         if ($date) {
@@ -404,7 +402,7 @@ class ReservationController extends Controller
      */
     public function getTimeSlots(Request $request): JsonResponse
     {
-        $date = $request->get('date');
+        $date = $request->query('date');
         
         // Use per-date settings if date is provided, otherwise use global settings
         if ($date) {
@@ -446,7 +444,7 @@ class ReservationController extends Controller
     }
 
     /**
-     * Check reservation status
+     * Check reservation status (from cache - no DB query)
      */
     public function checkStatus(Request $request): JsonResponse
     {
@@ -459,31 +457,38 @@ class ReservationController extends Controller
             ], 400);
         }
 
-        $otp = $this->otpService->getOtpBySession($sessionId);
-        
-        if (!$otp || !$otp->reservation_id) {
+        // Get status from cache (fast - no DB query)
+        $status = Cache::get("reservation_status_{$sessionId}");
+
+        if (!$status) {
+            // Fallback: try to get from OTP if cache expired
+            $otp = $this->otpService->getOtpBySession($sessionId);
+            
+            if ($otp && $otp->reservation_id) {
+                $reservation = Reservation::with('table')->find($otp->reservation_id);
+                
+                if ($reservation) {
+                    $status = [
+                        'status' => $reservation->status,
+                        'reservation_id' => $reservation->id,
+                        'message' => $reservation->status === 'confirmed' 
+                            ? 'Reservation confirmed successfully' 
+                            : 'Reservation is being processed',
+                    ];
+                    // Re-cache the status
+                    Cache::put("reservation_status_{$sessionId}", $status, 600);
+                }
+            }
+        }
+
+        if (!$status) {
             return response()->json([
                 'status' => 'failed',
                 'message' => 'Reservation not found',
             ]);
         }
 
-        $reservation = Reservation::with('table')->find($otp->reservation_id);
-
-        if (!$reservation) {
-            return response()->json([
-                'status' => 'failed',
-                'message' => 'Reservation not found',
-            ]);
-        }
-
-        return response()->json([
-            'status' => $reservation->status,
-            'message' => $reservation->status === 'confirmed' 
-                ? 'Reservation confirmed successfully' 
-                : 'Reservation is being processed',
-            'reservation_id' => $reservation->id,
-        ]);
+        return response()->json($status);
     }
 }
 

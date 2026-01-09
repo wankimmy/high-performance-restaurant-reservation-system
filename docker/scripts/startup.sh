@@ -145,7 +145,7 @@ echo "✅ Application ready!"
 echo "📌 Access at: http://localhost:8000"
 echo "🔐 Admin: admin@restaurant.com / password"
 
-# Install Octane and Pulse if not already installed
+# Install Octane if not already installed
 if [ ! -f "config/octane.php" ]; then
     echo "📦 Installing Laravel Octane..."
     php artisan octane:install --server=swoole --no-interaction || echo "Octane install skipped"
@@ -153,20 +153,6 @@ if [ ! -f "config/octane.php" ]; then
     chown -R www-data:www-data /var/www/html
 fi
 
-if [ ! -f "config/pulse.php" ]; then
-    echo "📦 Installing Laravel Pulse..."
-    php artisan pulse:install --no-interaction || echo "Pulse install skipped"
-    # Fix ownership after installation
-    chown -R www-data:www-data /var/www/html
-fi
-
-# Run Pulse migrations if tables don't exist
-if [ -f "config/pulse.php" ]; then
-    echo "📊 Running Pulse migrations..."
-    php artisan migrate --force 2>/dev/null || echo "Pulse migrations skipped"
-    chown -R www-data:www-data /var/www/html/storage
-    chown -R www-data:www-data /var/www/html/bootstrap/cache
-fi
 
 # Determine server type from environment variable (default: nginx)
 SERVER_TYPE=${SERVER_TYPE:-nginx}

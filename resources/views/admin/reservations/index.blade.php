@@ -32,7 +32,7 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($reservations as $reservation)
                     <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">#{{ $reservation->id }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{{ $reservation->id }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $reservation->customer_name }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $reservation->customer_phone }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $reservation->customer_email }}</td>
@@ -42,7 +42,7 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $reservation->pax }} {{ $reservation->pax == 1 ? 'guest' : 'guests' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600">RM {{ number_format($reservation->deposit_amount ?? 0, 2) }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            <div class="font-medium">{{ $reservation->reservation_date->format('M d, Y') }}</div>
+                            <div class="font-medium">{{ $reservation->reservation_date->format('d-m-Y') }}</div>
                             <div class="text-gray-500">{{ \Carbon\Carbon::parse($reservation->reservation_time)->format('g:i A') }}</div>
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-900">

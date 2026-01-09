@@ -153,7 +153,7 @@ docker-compose run --rm stress-test ./run-full-test.sh http://app:80 60s 100
 2. **Monitor Resources**: Watch CPU, memory, and database connections
 3. **Test Different Endpoints**: Test both static pages and API endpoints
 4. **Compare Server Types**: Test both Nginx and Swoole configurations
-5. **Use Laravel Pulse**: Monitor application performance during tests at http://localhost:8000/pulse
+5. **Monitor**: Check application logs and metrics during tests
 
 ## Troubleshooting
 

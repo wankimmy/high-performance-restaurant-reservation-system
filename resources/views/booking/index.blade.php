@@ -588,9 +588,10 @@
 
             const result = await response.json();
 
-            if (response.ok || response.status === 202) {
-                // Redirect to OTP verification page
-                window.location.href = `/verify-otp?session_id=${result.session_id}&reservation_id=${result.reservation_id || ''}`;
+            if (response.status === 202 || (response.ok && result.success)) {
+                // Reservation is being processed asynchronously
+                // Redirect to queue page to wait for processing
+                window.location.href = `/queue?session_id=${result.session_id}`;
             } else {
                 setButtonLoading(submitBtn, false, originalText);
                 showMessage(result.message || 'Failed to make reservation. Please try again.', 'error');

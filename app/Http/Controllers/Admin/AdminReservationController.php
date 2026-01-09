@@ -22,8 +22,7 @@ class AdminReservationController extends Controller
     public function index(Request $request)
     {
         $query = Reservation::with('table')
-            ->orderBy('reservation_date', 'desc')
-            ->orderBy('reservation_time', 'desc');
+            ->orderBy('reservations.id', 'desc');
 
         // Filter by status
         if ($request->has('status')) {
