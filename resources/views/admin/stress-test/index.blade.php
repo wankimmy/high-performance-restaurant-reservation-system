@@ -51,12 +51,12 @@
                             <input type="number" 
                                    id="duration" 
                                    name="duration" 
-                                   min="5" 
-                                   max="300" 
-                                   value="30" 
+                                   min="1" 
+                                   max="60" 
+                                   value="10" 
                                    required
                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500">
-                            <p class="mt-1 text-xs text-gray-500">Between 5 and 300 seconds</p>
+                            <p class="mt-1 text-xs text-gray-500">Between 1 and 60 seconds (test runs synchronously)</p>
                         </div>
                     </div>
 
@@ -103,6 +103,17 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <!-- Loading/Status Message -->
+        <div id="loadingMessage" class="hidden bg-blue-50 border border-blue-200 rounded-md p-4 mb-4">
+            <div class="flex items-center">
+                <svg class="animate-spin h-5 w-5 mr-3 text-blue-500" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span id="loadingText" class="text-sm text-blue-800">Running stress test...</span>
             </div>
         </div>
 
@@ -186,23 +197,120 @@ document.getElementById('stressTestForm').addEventListener('submit', async funct
     errorMessage.classList.add('hidden');
     
     try {
+        // Create AbortController for timeout (5 minutes max)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes
+        
         const response = await fetch('{{ route("admin.stress-test.run") }}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
+            signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         
         const result = await response.json();
         
-        if (result.success) {
-            // Display results
-            resultsTableBody.innerHTML = '';
+        // Debug: log the response
+        console.log('Stress test response:', result);
+        
+        // Check if we got the old async format (with test_id) - handle it gracefully
+        if (result.success && result.test_id) {
+            // Show loading message
+            document.getElementById('loadingMessage').classList.remove('hidden');
+            document.getElementById('loadingText').textContent = 'Stress test is running in background. Waiting for results...';
             
-            result.results.forEach(item => {
-                if (item.success) {
+            // Poll for results (fallback for old async format)
+            let pollCount = 0;
+            const maxPolls = 150; // 5 minutes max (150 * 2 seconds)
+            const pollInterval = setInterval(async () => {
+                pollCount++;
+                if (pollCount > maxPolls) {
+                    clearInterval(pollInterval);
+                    document.getElementById('loadingMessage').classList.add('hidden');
+                    document.getElementById('errorText').textContent = 'Stress test timed out. Please restart the container to use the new synchronous stress test.';
+                    errorMessage.classList.remove('hidden');
+                    return;
+                }
+                
+                try {
+                    const statusResponse = await fetch(`/admin/stress-test/status?testId=${encodeURIComponent(result.test_id)}`);
+                    if (statusResponse.ok) {
+                        const statusResult = await statusResponse.json();
+                        if (statusResult.success && statusResult.status) {
+                            const status = statusResult.status;
+                            if (status.status === 'completed' && status.results) {
+                                clearInterval(pollInterval);
+                                document.getElementById('loadingMessage').classList.add('hidden');
+                                
+                                // Display results
+                                displayResults(status.results);
+                                return;
+                            } else if (status.status === 'failed') {
+                                clearInterval(pollInterval);
+                                document.getElementById('loadingMessage').classList.add('hidden');
+                                document.getElementById('errorText').textContent = status.error || 'Stress test failed';
+                                errorMessage.classList.remove('hidden');
+                                return;
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error('Polling error:', e);
+                }
+            }, 2000); // Poll every 2 seconds
+            
+            return;
+        }
+        
+        // Handle new sync format with results
+        if (result.success && result.results && Array.isArray(result.results)) {
+            displayResults(result.results);
+        } else {
+            // Show error - check what we got
+            let errorMsg = 'An error occurred';
+            if (result.message) {
+                errorMsg = result.message;
+            } else if (result.error) {
+                errorMsg = result.error;
+            } else if (result.errors) {
+                errorMsg = JSON.stringify(result.errors);
+            }
+            document.getElementById('errorText').textContent = errorMsg;
+            errorMessage.classList.remove('hidden');
+        }
+    } catch (error) {
+        let errorMsg = 'Network error: ';
+        if (error.name === 'AbortError') {
+            errorMsg = 'Request timed out. The stress test may be taking longer than expected. Try reducing the duration or requests per second.';
+        } else {
+            errorMsg += error.message;
+        }
+        document.getElementById('errorText').textContent = errorMsg;
+        errorMessage.classList.remove('hidden');
+    } finally {
+        runTestBtn.disabled = false;
+        runTestSpinner.classList.add('hidden');
+    }
+});
+
+function displayResults(results) {
+    const resultsTableBody = document.getElementById('resultsTableBody');
+    const resultsSection = document.getElementById('resultsSection');
+    
+    // Display results
+    resultsTableBody.innerHTML = '';
+    
+    results.forEach(item => {
+                if (item.success && item.data) {
                     const data = item.data;
                     const row = document.createElement('tr');
                     row.className = data.error_rate > 5 ? 'bg-red-50' : '';
@@ -231,31 +339,19 @@ document.getElementById('stressTestForm').addEventListener('submit', async funct
                     `;
                     
                     resultsTableBody.appendChild(row);
-                } else {
+                } else if (!item.success) {
                     const row = document.createElement('tr');
                     row.className = 'bg-red-50';
                     row.innerHTML = `
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${escapeHtml(item.endpoint)}</td>
-                        <td colspan="10" class="px-6 py-4 text-sm text-red-600">Error: ${escapeHtml(item.error)}</td>
+                        <td colspan="10" class="px-6 py-4 text-sm text-red-600">Error: ${escapeHtml(item.error || 'Unknown error')}</td>
                     `;
                     resultsTableBody.appendChild(row);
                 }
-            });
-            
-            resultsSection.classList.remove('hidden');
-        } else {
-            // Show error
-            document.getElementById('errorText').textContent = result.message || 'An error occurred';
-            errorMessage.classList.remove('hidden');
-        }
-    } catch (error) {
-        document.getElementById('errorText').textContent = 'Network error: ' + error.message;
-        errorMessage.classList.remove('hidden');
-    } finally {
-        runTestBtn.disabled = false;
-        runTestSpinner.classList.add('hidden');
-    }
-});
+    });
+    
+    resultsSection.classList.remove('hidden');
+}
 
 function escapeHtml(text) {
     const div = document.createElement('div');

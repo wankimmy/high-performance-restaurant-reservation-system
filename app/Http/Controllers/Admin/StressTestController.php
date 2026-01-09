@@ -30,7 +30,7 @@ class StressTestController extends Controller
         
         $validator = Validator::make($request->all(), [
             'requests_per_second' => 'required|integer|min:1|max:1000',
-            'duration' => 'required|integer|min:5|max:300',
+            'duration' => 'required|integer|min:1|max:60',
             'endpoints' => 'required|array|min:1',
             'endpoints.*' => 'required|string',
         ]);
@@ -60,6 +60,33 @@ class StressTestController extends Controller
                 'message' => 'Failed to run stress test: ' . $e->getMessage(),
             ], 500);
         }
+    }
+
+    public function getStatus(Request $request): JsonResponse
+    {
+        $testId = $request->query('testId');
+        
+        if (!$testId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Test ID is required',
+            ], 400);
+        }
+        
+        // Check cache for status (for old async format compatibility)
+        $status = \Illuminate\Support\Facades\Cache::get($testId);
+
+        if (!$status) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Test not found or expired',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'status' => $status,
+        ]);
     }
 
     public function getServerType(): JsonResponse
