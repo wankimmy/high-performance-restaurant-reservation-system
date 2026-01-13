@@ -1,8 +1,4 @@
 services:
-  # =============================================================================
-  # Application Container
-  # All-in-one: Nginx, PHP-FPM, Queue Workers, Scheduler
-  # =============================================================================
   app:
     build:
       context: .
@@ -10,137 +6,90 @@ services:
     container_name: restaurant_app
     restart: unless-stopped
     working_dir: /var/www/html
-    
-    # Expose port 80 (internal) as 8000 (external)
     ports:
       - "8000:80"
-    
-    # Mount application code for development
-    # Remove this in production - code will be in image
     volumes:
       - ./:/var/www/html
-    
     networks:
       - restaurant_network
-    
-    # Wait for database and Redis to be healthy before starting
     depends_on:
       mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
-    
-    # Environment variables for database connection
-    # Override these in production!
+    env_file:
+      - .env
     environment:
       - DB_HOST=mysql
-      - DB_DATABASE=${DB_DATABASE:-restaurant_reservation}
-      - DB_USERNAME=${DB_USERNAME:-restaurant_user}
-      - DB_PASSWORD=${DB_PASSWORD:-restaurant_password}
       - REDIS_HOST=redis
-      # Server type: 'nginx' (default) or 'swoole' (Laravel Octane)
-      - SERVER_TYPE=${SERVER_TYPE:-nginx}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
-  # =============================================================================
-  # MySQL Database
-  # Stores all application data (reservations, users, tables, etc.)
-  # =============================================================================
   mysql:
     image: mysql:8.0
     container_name: restaurant_mysql
     restart: unless-stopped
-    
-    # Database credentials
-    # IMPORTANT: Change these in production!
-    environment:
-      MYSQL_DATABASE: ${DB_DATABASE:-restaurant_reservation}
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-restaurant_password}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-restaurant_password}
-      MYSQL_USER: ${DB_USERNAME:-restaurant_user}
-    
-    # Expose port for external access (optional - comment out in production)
     ports:
       - "3306:3306"
-    
-    # Persistent storage + custom configuration
     volumes:
-      - mysql_data:/var/lib/mysql              # Database files (persistent)
-      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf  # MySQL configuration
-    
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
     networks:
       - restaurant_network
-    
-    # Health check - ensures MySQL is ready before starting app
+    env_file:
+      - .env
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       timeout: 20s
       retries: 10
       interval: 5s
 
-  # =============================================================================
-  # Redis Cache & Queue Backend
-  # Handles caching, sessions, and queue jobs
-  # =============================================================================
   redis:
     image: redis:alpine
     container_name: restaurant_redis
     restart: unless-stopped
-    
-    # Expose port for external access (optional - comment out in production)
     ports:
       - "6379:6379"
-    
-    # Persistent storage for queue jobs
     volumes:
       - redis_data:/data
-    
     networks:
       - restaurant_network
-    
-    # Enable AOF persistence for durability
     command: redis-server --appendonly yes
-    
-    # Health check - ensures Redis is ready before starting app
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       timeout: 3s
       retries: 5
       interval: 3s
 
-  # =============================================================================
-  # phpMyAdmin - Database Management Interface
-  # Web-based MySQL administration tool
-  # Access at: http://localhost:8080
-  # =============================================================================
   phpmyadmin:
     image: phpmyadmin:latest
     container_name: restaurant_phpmyadmin
     restart: unless-stopped
-    
-    # Expose phpMyAdmin on port 8080
     ports:
       - "8080:80"
-    
-    # Configuration
+    networks:
+      - restaurant_network
+    env_file:
+      - .env
     environment:
       - PMA_HOST=mysql
       - PMA_PORT=3306
-      - PMA_USER=${DB_USERNAME:-restaurant_user}
-      - PMA_PASSWORD=${DB_PASSWORD:-restaurant_password}
+      - PMA_USER=${DB_USERNAME}
+      - PMA_PASSWORD=${DB_PASSWORD}
       - UPLOAD_LIMIT=50M
-    
-    networks:
-      - restaurant_network
-    
-    # Wait for MySQL to be ready
     depends_on:
       mysql:
         condition: service_healthy
 
-  # =============================================================================
-  # WhatsApp Baileys Service
-  # Node.js service for WhatsApp Web integration using Baileys
-  # =============================================================================
   whatsapp-service:
     build:
       context: ./whatsapp-service
@@ -148,36 +97,19 @@ services:
     container_name: restaurant_whatsapp
     restart: unless-stopped
     working_dir: /app
-    
-    # Expose port 3001
     ports:
       - "3001:3001"
-    
-    # Persistent storage for auth state
     volumes:
       - whatsapp_auth:/app/auth_state
-    
     networks:
       - restaurant_network
-    
     environment:
       - WHATSAPP_PORT=3001
 
-# =============================================================================
-# Networks
-# =============================================================================
 networks:
   restaurant_network:
-    driver: bridge  # Internal network for container communication
 
-# =============================================================================
-# Volumes
-# Persistent data storage (survives container restarts)
-# =============================================================================
 volumes:
   mysql_data:
-    driver: local  # Database files persist here
   redis_data:
-    driver: local  # Redis snapshots persist here
   whatsapp_auth:
-    driver: local  # WhatsApp auth state persists here

@@ -33,7 +33,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::hxkaXe1628gGL2Bk',
+            '_route' => 'generated::TUNCXdrK2VUSKreO',
           ),
           1 => NULL,
           2 => 
@@ -53,7 +53,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::U5T9nCdOoJb3erXs',
+            '_route' => 'generated::BncKsWSeQFcV5sXL',
           ),
           1 => NULL,
           2 => 
@@ -73,7 +73,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::xXgDfb0KrLOP3b2Z',
+            '_route' => 'generated::VKl524pKZ7F5luYf',
           ),
           1 => NULL,
           2 => 
@@ -93,7 +93,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::CgAx82dfEVSHjyE8',
+            '_route' => 'generated::MVn9DIZa13mpVAXg',
           ),
           1 => NULL,
           2 => 
@@ -113,7 +113,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::d7qDzZS15L2oB1kO',
+            '_route' => 'generated::98VC3QtkvmxstxA6',
           ),
           1 => NULL,
           2 => 
@@ -132,7 +132,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::F0J2W9AzORDghygW',
+            '_route' => 'generated::FtpXLnEJYfFFRdJA',
           ),
           1 => NULL,
           2 => 
@@ -151,7 +151,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::L1xtyCepghKTYy0k',
+            '_route' => 'generated::aKecIpULgGjffZ6f',
           ),
           1 => NULL,
           2 => 
@@ -170,7 +170,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::RGFKSc3Z3rwiWlBp',
+            '_route' => 'generated::CFIsAJZMvApkNwpb',
           ),
           1 => NULL,
           2 => 
@@ -190,7 +190,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::KamV5mbE94NlbV5E',
+            '_route' => 'generated::VwdyQP1aU6gmUXPy',
           ),
           1 => NULL,
           2 => 
@@ -307,7 +307,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::PVngclYfWlOHwXub',
+            '_route' => 'generated::MxDjz7c1aRSGnDnK',
           ),
           1 => NULL,
           2 => 
@@ -343,7 +343,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::MA6E5nW3eG84FN2j',
+            '_route' => 'generated::qVG4fQ0gmQNH5PRG',
           ),
           1 => NULL,
           2 => 
@@ -473,7 +473,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::wcvpqmaEwfP6uTKC',
+            '_route' => 'generated::22S1ovW9CjzSjyNH',
           ),
           1 => NULL,
           2 => 
@@ -853,85 +853,6 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      '/admin/stress-test' => 
-      array (
-        0 => 
-        array (
-          0 => 
-          array (
-            '_route' => 'admin.stress-test.index',
-          ),
-          1 => NULL,
-          2 => 
-          array (
-            'GET' => 0,
-            'HEAD' => 1,
-          ),
-          3 => NULL,
-          4 => false,
-          5 => false,
-          6 => NULL,
-        ),
-      ),
-      '/admin/stress-test/run' => 
-      array (
-        0 => 
-        array (
-          0 => 
-          array (
-            '_route' => 'admin.stress-test.run',
-          ),
-          1 => NULL,
-          2 => 
-          array (
-            'POST' => 0,
-          ),
-          3 => NULL,
-          4 => false,
-          5 => false,
-          6 => NULL,
-        ),
-      ),
-      '/admin/stress-test/status' => 
-      array (
-        0 => 
-        array (
-          0 => 
-          array (
-            '_route' => 'admin.stress-test.status',
-          ),
-          1 => NULL,
-          2 => 
-          array (
-            'GET' => 0,
-            'HEAD' => 1,
-          ),
-          3 => NULL,
-          4 => false,
-          5 => false,
-          6 => NULL,
-        ),
-      ),
-      '/admin/stress-test/server-type' => 
-      array (
-        0 => 
-        array (
-          0 => 
-          array (
-            '_route' => 'admin.stress-test.server-type',
-          ),
-          1 => NULL,
-          2 => 
-          array (
-            'GET' => 0,
-            'HEAD' => 1,
-          ),
-          3 => NULL,
-          4 => false,
-          5 => false,
-          6 => NULL,
-        ),
-      ),
       '/profile' => 
       array (
         0 => 
@@ -1243,7 +1164,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::hxkaXe1628gGL2Bk' => 
+    'generated::TUNCXdrK2VUSKreO' => 
     array (
       'methods' => 
       array (
@@ -1264,7 +1185,7 @@ app('router')->setCompiledRoutes(
         'where' => 
         array (
         ),
-        'as' => 'generated::hxkaXe1628gGL2Bk',
+        'as' => 'generated::TUNCXdrK2VUSKreO',
       ),
       'fallback' => false,
       'defaults' => 
@@ -1280,7 +1201,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::U5T9nCdOoJb3erXs' => 
+    'generated::BncKsWSeQFcV5sXL' => 
     array (
       'methods' => 
       array (
@@ -1301,7 +1222,7 @@ app('router')->setCompiledRoutes(
         'where' => 
         array (
         ),
-        'as' => 'generated::U5T9nCdOoJb3erXs',
+        'as' => 'generated::BncKsWSeQFcV5sXL',
       ),
       'fallback' => false,
       'defaults' => 
@@ -1317,7 +1238,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::xXgDfb0KrLOP3b2Z' => 
+    'generated::VKl524pKZ7F5luYf' => 
     array (
       'methods' => 
       array (
@@ -1338,7 +1259,7 @@ app('router')->setCompiledRoutes(
         'where' => 
         array (
         ),
-        'as' => 'generated::xXgDfb0KrLOP3b2Z',
+        'as' => 'generated::VKl524pKZ7F5luYf',
       ),
       'fallback' => false,
       'defaults' => 
@@ -1354,7 +1275,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::CgAx82dfEVSHjyE8' => 
+    'generated::MVn9DIZa13mpVAXg' => 
     array (
       'methods' => 
       array (
@@ -1375,7 +1296,7 @@ app('router')->setCompiledRoutes(
         'where' => 
         array (
         ),
-        'as' => 'generated::CgAx82dfEVSHjyE8',
+        'as' => 'generated::MVn9DIZa13mpVAXg',
       ),
       'fallback' => false,
       'defaults' => 
@@ -1391,7 +1312,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::d7qDzZS15L2oB1kO' => 
+    'generated::98VC3QtkvmxstxA6' => 
     array (
       'methods' => 
       array (
@@ -1411,7 +1332,7 @@ app('router')->setCompiledRoutes(
         'where' => 
         array (
         ),
-        'as' => 'generated::d7qDzZS15L2oB1kO',
+        'as' => 'generated::98VC3QtkvmxstxA6',
       ),
       'fallback' => false,
       'defaults' => 
@@ -1427,7 +1348,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::F0J2W9AzORDghygW' => 
+    'generated::FtpXLnEJYfFFRdJA' => 
     array (
       'methods' => 
       array (
@@ -1447,7 +1368,7 @@ app('router')->setCompiledRoutes(
         'where' => 
         array (
         ),
-        'as' => 'generated::F0J2W9AzORDghygW',
+        'as' => 'generated::FtpXLnEJYfFFRdJA',
       ),
       'fallback' => false,
       'defaults' => 
@@ -1463,7 +1384,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::L1xtyCepghKTYy0k' => 
+    'generated::aKecIpULgGjffZ6f' => 
     array (
       'methods' => 
       array (
@@ -1483,7 +1404,7 @@ app('router')->setCompiledRoutes(
         'where' => 
         array (
         ),
-        'as' => 'generated::L1xtyCepghKTYy0k',
+        'as' => 'generated::aKecIpULgGjffZ6f',
       ),
       'fallback' => false,
       'defaults' => 
@@ -1499,7 +1420,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::RGFKSc3Z3rwiWlBp' => 
+    'generated::CFIsAJZMvApkNwpb' => 
     array (
       'methods' => 
       array (
@@ -1520,7 +1441,7 @@ app('router')->setCompiledRoutes(
         'where' => 
         array (
         ),
-        'as' => 'generated::RGFKSc3Z3rwiWlBp',
+        'as' => 'generated::CFIsAJZMvApkNwpb',
       ),
       'fallback' => false,
       'defaults' => 
@@ -1536,7 +1457,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::KamV5mbE94NlbV5E' => 
+    'generated::VwdyQP1aU6gmUXPy' => 
     array (
       'methods' => 
       array (
@@ -1564,8 +1485,8 @@ app('router')->setCompiledRoutes(
                     return response(\\Illuminate\\Support\\Facades\\View::file(\'/var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Configuration\'.\'/../resources/health-up.blade.php\', [
                         \'exception\' => $exception,
                     ]), status: $exception ? 500 : 200);
-                }";s:5:"scope";s:54:"Illuminate\\Foundation\\Configuration\\ApplicationBuilder";s:4:"this";N;s:4:"self";s:32:"00000000000003840000000000000000";}}',
-        'as' => 'generated::KamV5mbE94NlbV5E',
+                }";s:5:"scope";s:54:"Illuminate\\Foundation\\Configuration\\ApplicationBuilder";s:4:"this";N;s:4:"self";s:32:"000000000000036a0000000000000000";}}',
+        'as' => 'generated::VwdyQP1aU6gmUXPy',
       ),
       'fallback' => false,
       'defaults' => 
@@ -1767,7 +1688,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::PVngclYfWlOHwXub' => 
+    'generated::MxDjz7c1aRSGnDnK' => 
     array (
       'methods' => 
       array (
@@ -1788,7 +1709,7 @@ app('router')->setCompiledRoutes(
         'where' => 
         array (
         ),
-        'as' => 'generated::PVngclYfWlOHwXub',
+        'as' => 'generated::MxDjz7c1aRSGnDnK',
       ),
       'fallback' => false,
       'defaults' => 
@@ -1842,7 +1763,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::MA6E5nW3eG84FN2j' => 
+    'generated::qVG4fQ0gmQNH5PRG' => 
     array (
       'methods' => 
       array (
@@ -1863,7 +1784,7 @@ app('router')->setCompiledRoutes(
         'where' => 
         array (
         ),
-        'as' => 'generated::MA6E5nW3eG84FN2j',
+        'as' => 'generated::qVG4fQ0gmQNH5PRG',
       ),
       'fallback' => false,
       'defaults' => 
@@ -2183,7 +2104,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::wcvpqmaEwfP6uTKC' => 
+    'generated::22S1ovW9CjzSjyNH' => 
     array (
       'methods' => 
       array (
@@ -2204,7 +2125,7 @@ app('router')->setCompiledRoutes(
         'where' => 
         array (
         ),
-        'as' => 'generated::wcvpqmaEwfP6uTKC',
+        'as' => 'generated::22S1ovW9CjzSjyNH',
       ),
       'fallback' => false,
       'defaults' => 
@@ -3197,161 +3118,6 @@ app('router')->setCompiledRoutes(
         'uses' => 'App\\Http\\Controllers\\Admin\\TableController@toggleAvailability',
         'controller' => 'App\\Http\\Controllers\\Admin\\TableController@toggleAvailability',
         'as' => 'admin.tables.toggle',
-        'namespace' => NULL,
-        'prefix' => '/admin',
-        'where' => 
-        array (
-        ),
-      ),
-      'fallback' => false,
-      'defaults' => 
-      array (
-      ),
-      'wheres' => 
-      array (
-      ),
-      'bindingFields' => 
-      array (
-      ),
-      'lockSeconds' => NULL,
-      'waitSeconds' => NULL,
-      'withTrashed' => false,
-    ),
-    'admin.stress-test.index' => 
-    array (
-      'methods' => 
-      array (
-        0 => 'GET',
-        1 => 'HEAD',
-      ),
-      'uri' => 'admin/stress-test',
-      'action' => 
-      array (
-        'middleware' => 
-        array (
-          0 => 'web',
-          1 => 'auth',
-          2 => 'verified',
-        ),
-        'uses' => 'App\\Http\\Controllers\\Admin\\StressTestController@index',
-        'controller' => 'App\\Http\\Controllers\\Admin\\StressTestController@index',
-        'as' => 'admin.stress-test.index',
-        'namespace' => NULL,
-        'prefix' => '/admin',
-        'where' => 
-        array (
-        ),
-      ),
-      'fallback' => false,
-      'defaults' => 
-      array (
-      ),
-      'wheres' => 
-      array (
-      ),
-      'bindingFields' => 
-      array (
-      ),
-      'lockSeconds' => NULL,
-      'waitSeconds' => NULL,
-      'withTrashed' => false,
-    ),
-    'admin.stress-test.run' => 
-    array (
-      'methods' => 
-      array (
-        0 => 'POST',
-      ),
-      'uri' => 'admin/stress-test/run',
-      'action' => 
-      array (
-        'middleware' => 
-        array (
-          0 => 'web',
-          1 => 'auth',
-          2 => 'verified',
-        ),
-        'uses' => 'App\\Http\\Controllers\\Admin\\StressTestController@runTest',
-        'controller' => 'App\\Http\\Controllers\\Admin\\StressTestController@runTest',
-        'as' => 'admin.stress-test.run',
-        'namespace' => NULL,
-        'prefix' => '/admin',
-        'where' => 
-        array (
-        ),
-      ),
-      'fallback' => false,
-      'defaults' => 
-      array (
-      ),
-      'wheres' => 
-      array (
-      ),
-      'bindingFields' => 
-      array (
-      ),
-      'lockSeconds' => NULL,
-      'waitSeconds' => NULL,
-      'withTrashed' => false,
-    ),
-    'admin.stress-test.status' => 
-    array (
-      'methods' => 
-      array (
-        0 => 'GET',
-        1 => 'HEAD',
-      ),
-      'uri' => 'admin/stress-test/status',
-      'action' => 
-      array (
-        'middleware' => 
-        array (
-          0 => 'web',
-          1 => 'auth',
-          2 => 'verified',
-        ),
-        'uses' => 'App\\Http\\Controllers\\Admin\\StressTestController@getStatus',
-        'controller' => 'App\\Http\\Controllers\\Admin\\StressTestController@getStatus',
-        'as' => 'admin.stress-test.status',
-        'namespace' => NULL,
-        'prefix' => '/admin',
-        'where' => 
-        array (
-        ),
-      ),
-      'fallback' => false,
-      'defaults' => 
-      array (
-      ),
-      'wheres' => 
-      array (
-      ),
-      'bindingFields' => 
-      array (
-      ),
-      'lockSeconds' => NULL,
-      'waitSeconds' => NULL,
-      'withTrashed' => false,
-    ),
-    'admin.stress-test.server-type' => 
-    array (
-      'methods' => 
-      array (
-        0 => 'GET',
-        1 => 'HEAD',
-      ),
-      'uri' => 'admin/stress-test/server-type',
-      'action' => 
-      array (
-        'middleware' => 
-        array (
-          0 => 'web',
-          1 => 'auth',
-          2 => 'verified',
-        ),
-        'uses' => 'App\\Http\\Controllers\\Admin\\StressTestController@getServerType',
-        'controller' => 'App\\Http\\Controllers\\Admin\\StressTestController@getServerType',
-        'as' => 'admin.stress-test.server-type',
         'namespace' => NULL,
         'prefix' => '/admin',
         'where' => 
