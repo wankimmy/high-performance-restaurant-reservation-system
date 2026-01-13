@@ -163,30 +163,6 @@ services:
     environment:
       - WHATSAPP_PORT=3001
 
-  # =============================================================================
-  # Stress Test Container
-  # Load testing tools: wrk, Apache Bench (ab), hey
-  # Usage: docker-compose run --rm stress-test [command]
-  # =============================================================================
-  stress-test:
-    build:
-      context: .
-      dockerfile: docker/stress-test/Dockerfile
-    container_name: restaurant_stress_test
-    restart: "no"  # Don't auto-restart, run on-demand
-    working_dir: /stress-tests
-    
-    networks:
-      - restaurant_network
-    
-    # Wait for app to be ready before running tests
-    depends_on:
-      app:
-        condition: service_started
-    
-    # Keep container running for interactive use
-    command: tail -f /dev/null
-
 # =============================================================================
 # Networks
 # =============================================================================

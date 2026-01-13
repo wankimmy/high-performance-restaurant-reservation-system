@@ -211,17 +211,6 @@ GET /api/v1/time-slots?date=2024-01-15  # Date-specific slots
 docker-compose exec app php artisan test
 ```
 
-### Load Testing
-```bash
-# Build stress test container
-docker-compose build stress-test
-
-# Run load test
-docker-compose run --rm stress-test wrk -t4 -c50 -d30s --latency http://app:80/
-```
-
-See [`STRESS_TEST.md`](STRESS_TEST.md) for complete guide.
-
 ---
 
 ## 🚀 Production Deployment
@@ -245,7 +234,6 @@ See [`DEPLOYMENT.md`](DEPLOYMENT.md) for detailed guide.
 
 - **Quick Start**: [`START_HERE.md`](START_HERE.md)
 - **Deployment**: [`DEPLOYMENT.md`](DEPLOYMENT.md)
-- **Stress Testing**: [`STRESS_TEST.md`](STRESS_TEST.md)
 - **Contributing**: [`CONTRIBUTING.md`](CONTRIBUTING.md)
 
 ---

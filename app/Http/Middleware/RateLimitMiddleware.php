@@ -11,11 +11,6 @@ class RateLimitMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
-        // Bypass rate limiting for stress tests (identified by special header)
-        if ($request->header('X-Stress-Test') === 'true') {
-            return $next($request);
-        }
-        
         $identifier = $request->ip();
         
         // Fixed window: reset at the start of each minute
