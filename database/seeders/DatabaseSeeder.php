@@ -31,7 +31,7 @@ class DatabaseSeeder extends Seeder
         }
         
         // Seed dummy reservations
-        $this->call(ReservationSeeder::class);
+        // $this->call(ReservationSeeder::class);
         
         $this->command->info('Database seeded successfully!');
     }

@@ -72,6 +72,9 @@ class ReservationSeeder extends Seeder
                 
                 // Random time slot
                 $reservationTime = $timeSlots[array_rand($timeSlots)];
+
+                $reservationStartAt = Carbon::parse($reservationDate->format('Y-m-d') . ' ' . $reservationTime);
+                $reservationEndAt = $reservationStartAt->copy()->addMinutes(105);
                 
                 $slotKey = "{$reservationDate->format('Y-m-d')}_{$reservationTime}_{$table->id}";
                 $attempts++;
@@ -108,6 +111,8 @@ class ReservationSeeder extends Seeder
                 'deposit_amount' => $depositAmount,
                 'reservation_date' => $reservationDate,
                 'reservation_time' => $reservationTime,
+                'reservation_start_at' => $reservationStartAt,
+                'reservation_end_at' => $reservationEndAt,
                 'notes' => $note,
                 'status' => $status,
                 'ip_address' => '127.0.0.1',

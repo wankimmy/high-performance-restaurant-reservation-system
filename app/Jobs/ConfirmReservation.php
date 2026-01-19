@@ -45,8 +45,13 @@ class ConfirmReservation implements ShouldQueue
                 'otp_verified' => true,
             ]);
 
-            // Clear availability cache
-            Cache::forget("available_tables_{$reservation->reservation_date}_{$reservation->reservation_time}");
+            // Clear availability cache (all pax-specific keys)
+            $cacheKeyBase = "available_tables_{$reservation->reservation_date}_{$reservation->reservation_time}";
+            Cache::forget($cacheKeyBase);
+            // Clear pax-specific cache keys (common pax values 1-20)
+            for ($pax = 1; $pax <= 20; $pax++) {
+                Cache::forget("{$cacheKeyBase}_{$pax}");
+            }
 
             // Send confirmation notifications
             $notificationService->sendReservationConfirmation($reservation);

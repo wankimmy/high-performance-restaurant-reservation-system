@@ -286,6 +286,8 @@
     async function initDateTimePicker() {
         const closedDatesList = await fetchClosedDates();
         const today = new Date();
+        const maxDate = new Date();
+        maxDate.setDate(maxDate.getDate() + 30);
         today.setHours(0, 0, 0, 0);
         
         // Convert closed dates to array of date strings for Flatpickr
@@ -295,6 +297,7 @@
         const dateInput = document.getElementById('reservation_date');
         const flatpickrInstance = flatpickr(dateInput, {
             minDate: 'today', // Disable all dates before today
+            maxDate: maxDate, // Limit bookings to 30 days ahead
             disable: disabledDates, // Disable dates closed by admin
             dateFormat: 'M d, Y',
             altInput: true,

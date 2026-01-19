@@ -34,7 +34,20 @@ class AdminReservationController extends Controller
             $query->where('reservation_date', $request->date);
         }
 
-        $reservations = $query->paginate(50);
+        $perPageInput = $request->query('per_page', 10);
+        $allowedPerPage = [10, 25, 50, 100, 'all'];
+        if (!in_array($perPageInput, $allowedPerPage, true)) {
+            $perPageInput = 10;
+        }
+
+        if ($perPageInput === 'all') {
+            $total = $query->count();
+            $perPage = max($total, 1);
+        } else {
+            $perPage = (int) $perPageInput;
+        }
+
+        $reservations = $query->paginate($perPage)->appends($request->query());
 
         if ($request->expectsJson()) {
             return response()->json($reservations);
@@ -71,8 +84,13 @@ class AdminReservationController extends Controller
             }
         }
 
-        // Clear cache for availability
-        Cache::forget("available_tables_{$reservation->reservation_date}_{$reservation->reservation_time}");
+        // Clear cache for availability (all pax-specific keys)
+        $cacheKeyBase = "available_tables_{$reservation->reservation_date}_{$reservation->reservation_time}";
+        Cache::forget($cacheKeyBase);
+        // Clear pax-specific cache keys (common pax values 1-20)
+        for ($pax = 1; $pax <= 20; $pax++) {
+            Cache::forget("{$cacheKeyBase}_{$pax}");
+        }
 
         return response()->json([
             'success' => true,

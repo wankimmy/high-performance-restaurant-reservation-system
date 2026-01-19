@@ -107,6 +107,12 @@ class RestaurantSettingsController extends Controller
         $settings = RestaurantSetting::firstOrCreate([], $data);
         $settings->update($data);
         RestaurantSetting::clearCache();
+        
+        // Clear API endpoint caches
+        \Illuminate\Support\Facades\Cache::forget('restaurant_settings_global');
+        \Illuminate\Support\Facades\Cache::forget('time_slots_global');
+        // Clear all date-specific caches (they'll regenerate on next request)
+        // Note: In production, you might want to track which dates have cached settings
 
         return response()->json([
             'success' => true,
@@ -223,6 +229,10 @@ class RestaurantSettingsController extends Controller
 
         // Clear cache for this specific date
         \App\Models\ReservationSetting::clearCache($date);
+        
+        // Clear API endpoint caches for this date
+        \Illuminate\Support\Facades\Cache::forget("restaurant_settings_date_{$date}");
+        \Illuminate\Support\Facades\Cache::forget("time_slots_date_{$date}");
 
         return response()->json([
             'success' => true,
@@ -256,6 +266,10 @@ class RestaurantSettingsController extends Controller
 
         // Clear cache for this specific date and the closed dates list
         \App\Models\ReservationSetting::clearCache($date);
+        
+        // Clear API endpoint caches for this date
+        \Illuminate\Support\Facades\Cache::forget("restaurant_settings_date_{$date}");
+        \Illuminate\Support\Facades\Cache::forget("time_slots_date_{$date}");
 
         return response()->json([
             'success' => true,
@@ -290,6 +304,10 @@ class RestaurantSettingsController extends Controller
 
         // Clear cache for this specific date and the closed dates list
         \App\Models\ReservationSetting::clearCache($date);
+        
+        // Clear API endpoint caches for this date
+        \Illuminate\Support\Facades\Cache::forget("restaurant_settings_date_{$date}");
+        \Illuminate\Support\Facades\Cache::forget("time_slots_date_{$date}");
 
         return response()->json([
             'success' => true,

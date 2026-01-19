@@ -16,6 +16,8 @@ class Reservation extends Model
         'deposit_amount',
         'reservation_date',
         'reservation_time',
+        'reservation_start_at',
+        'reservation_end_at',
         'notes',
         'status',
         'ip_address',
@@ -28,6 +30,8 @@ class Reservation extends Model
 
     protected $casts = [
         'reservation_date' => 'date',
+        'reservation_start_at' => 'datetime',
+        'reservation_end_at' => 'datetime',
         'pax' => 'integer',
         'deposit_amount' => 'decimal:2',
         'otp_verified' => 'boolean',

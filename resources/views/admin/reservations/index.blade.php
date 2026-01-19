@@ -8,7 +8,28 @@
 <!-- Reservations Table -->
 <div class="bg-white shadow-sm rounded-lg">
     <div class="px-12 py-4 border-b border-gray-200">
-        <h3 class="text-lg font-medium text-gray-900">All Reservations</h3>
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <h3 class="text-lg font-medium text-gray-900">All Reservations</h3>
+            <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                <form method="GET" class="flex items-center gap-2">
+                    @foreach(request()->except('per_page', 'page') as $key => $value)
+                        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                    @endforeach
+                    <label for="perPage">Show</label>
+                    <select id="perPage" name="per_page" class="rounded-md border-gray-300 text-sm" onchange="this.form.submit()">
+                        @foreach([10, 25, 50, 100, 'all'] as $size)
+                            <option value="{{ $size }}" @selected(request('per_page', 10) == $size)>
+                                {{ $size === 'all' ? 'All' : $size }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <span>entries</span>
+                </form>
+                <div>
+                    Showing {{ $reservations->firstItem() ?? 0 }}–{{ $reservations->lastItem() ?? 0 }} of {{ $reservations->total() }} entries
+                </div>
+            </div>
+        </div>
     </div>
     <div class="overflow-hidden">
         <div class="overflow-x-auto">
@@ -105,6 +126,10 @@
             </table>
         </div>
     </div>
+</div>
+
+<div class="mt-4 px-4">
+    {{ $reservations->links() }}
 </div>
 
 <!-- OTP Verification Modal -->

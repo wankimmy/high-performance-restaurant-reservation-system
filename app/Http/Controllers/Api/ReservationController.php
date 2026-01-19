@@ -19,6 +19,10 @@ use Illuminate\Support\Facades\Validator;
 
 class ReservationController extends Controller
 {
+    private const RESERVATION_CACHE_TTL = 120; // 2 minutes
+    private const RESERVATION_HOLD_TTL = 120; // 2 minutes
+    private const RESERVATION_MAX_DAYS_AHEAD = 30;
+
     public function __construct(
         private OtpService $otpService,
         private WhatsAppService $whatsAppService
@@ -26,13 +30,14 @@ class ReservationController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        $maxReservationDate = now()->addDays(self::RESERVATION_MAX_DAYS_AHEAD)->format('Y-m-d');
         $validator = Validator::make($request->all(), [
             'table_id' => 'required|exists:tables,id',
             'customer_name' => 'required|string|max:255',
             'customer_email' => 'required|email|max:255',
             'customer_phone' => 'required|string|max:20',
             'pax' => 'required|integer|min:1|max:20',
-            'reservation_date' => 'required|date|after_or_equal:today',
+            'reservation_date' => "required|date|after_or_equal:today|before_or_equal:{$maxReservationDate}",
             'reservation_time' => 'required|date_format:H:i',
             'notes' => 'nullable|string|max:100',
         ]);
@@ -73,71 +78,77 @@ class ReservationController extends Controller
             ], 422);
         }
 
-        // Use Redis lock to prevent race conditions (lightweight check only)
-        $lockKey = "reservation_lock_{$data['table_id']}_{$data['reservation_date']}_{$data['reservation_time']}";
-        $lock = Cache::lock($lockKey, 5);
+        // Create a temporary hold to prevent race conditions across async jobs
+        $sessionId = Str::uuid()->toString();
+        $holdKey = "reservation_hold_{$data['table_id']}_{$data['reservation_date']}_{$data['reservation_time']}";
+        $holdAcquired = Cache::add($holdKey, $sessionId, self::RESERVATION_HOLD_TTL);
+
+        if (!$holdAcquired) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This table is already being booked at the selected time. Please choose a different table or time.',
+            ], 409);
+        }
+
+        // Re-check after acquiring hold to avoid last-millisecond conflicts
+        if ($table->hasReservationAt($data['reservation_date'], $data['reservation_time'])) {
+            Cache::forget($holdKey);
+            return response()->json([
+                'success' => false,
+                'message' => 'This table is already reserved at the selected time. Please choose a different table or time.',
+            ], 409);
+        }
 
         try {
-            if ($lock->get()) {
-                // Quick availability check (no DB write)
-                if ($table->hasReservationAt($data['reservation_date'], $data['reservation_time'])) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'This table is already reserved at the selected time',
-                    ], 409);
-                }
+            // Store reservation data temporarily in cache (10 minutes)
+            Cache::put("reservation_data_{$sessionId}", [
+                'table_id' => $data['table_id'],
+                'customer_name' => $data['customer_name'],
+                'customer_email' => $data['customer_email'],
+                'customer_phone' => $data['customer_phone'],
+                'pax' => $data['pax'],
+                'reservation_date' => $data['reservation_date'],
+                'reservation_time' => $data['reservation_time'],
+                'notes' => $data['notes'] ?? null,
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ], self::RESERVATION_CACHE_TTL);
 
-                // Generate session ID for tracking
-                $sessionId = Str::uuid()->toString();
+            // Initialize status in cache
+            Cache::put("reservation_status_{$sessionId}", [
+                'status' => 'processing',
+                'message' => 'Creating reservation...',
+            ], self::RESERVATION_CACHE_TTL);
 
-                // Store reservation data temporarily in cache (10 minutes)
-                Cache::put("reservation_data_{$sessionId}", [
-                    'table_id' => $data['table_id'],
-                    'customer_name' => $data['customer_name'],
-                    'customer_email' => $data['customer_email'],
-                    'customer_phone' => $data['customer_phone'],
-                    'pax' => $data['pax'],
-                    'reservation_date' => $data['reservation_date'],
-                    'reservation_time' => $data['reservation_time'],
-                    'notes' => $data['notes'] ?? null,
-                    'ip_address' => $request->ip(),
-                    'user_agent' => $request->userAgent(),
-                ], 600);
+            // Queue reservation creation (async - no DB write in request)
+            CreateReservation::dispatch(
+                $data,
+                $sessionId,
+                $request->ip(),
+                $request->userAgent()
+            )->afterResponse();
 
-                // Initialize status in cache
-                Cache::put("reservation_status_{$sessionId}", [
-                    'status' => 'processing',
-                    'message' => 'Creating reservation...',
-                ], 600);
+            return response()->json([
+                'success' => true,
+                'message' => 'Reservation request received. Processing...',
+                'session_id' => $sessionId,
+            ], 202); // 202 Accepted - request is being processed
+        } catch (\Throwable $e) {
+            Cache::forget($holdKey);
+            report($e);
 
-                // Queue reservation creation (async - no DB write in request)
-                CreateReservation::dispatch(
-                    $data,
-                    $sessionId,
-                    $request->ip(),
-                    $request->userAgent()
-                )->afterResponse();
-
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Reservation request received. Processing...',
-                    'session_id' => $sessionId,
-                ], 202); // 202 Accepted - request is being processed
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Please try again in a moment',
-                ], 429);
-            }
-        } finally {
-            optional($lock)->release();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create reservation request. Please try again.',
+            ], 500);
         }
     }
 
     public function checkAvailability(Request $request): JsonResponse
     {
+        $maxReservationDate = now()->addDays(self::RESERVATION_MAX_DAYS_AHEAD)->format('Y-m-d');
         $validator = Validator::make($request->all(), [
-            'date' => 'required|date|after_or_equal:today',
+            'date' => "required|date|after_or_equal:today|before_or_equal:{$maxReservationDate}",
             'time' => 'required|date_format:H:i',
             'pax' => 'nullable|integer|min:1|max:20',
         ]);
@@ -165,54 +176,35 @@ class ReservationController extends Controller
             $cacheKey .= "_{$data['pax']}";
         }
 
+        $requestedDateTime = \Carbon\Carbon::parse($data['date'] . ' ' . $data['time']);
+        $requestedEndTime = $requestedDateTime->copy()->addMinutes(105);
+        $pax = $data['pax'] ?? 1;
+
         $availableTables = Cache::remember(
             $cacheKey,
             300,
-            function () use ($data) {
-                $requestedDateTime = \Carbon\Carbon::parse($data['date'] . ' ' . $data['time']);
-                
-                // Get all tables that meet capacity requirements
+            function () use ($data, $requestedDateTime, $requestedEndTime, $pax) {
+                $requestedStart = $requestedDateTime->format('Y-m-d H:i:s');
+                $requestedEnd = $requestedEndTime->format('Y-m-d H:i:s');
+
                 // Availability is determined by checking reservations, not the is_available field
-                $allTables = Table::where('capacity', '>=', $data['pax'] ?? 1)
-                    ->with(['reservations' => function ($q) use ($data) {
-                        $q->where('reservation_date', $data['date'])
-                            ->where('status', '!=', 'cancelled');
-                    }])
-                    ->get();
+                // Use a NOT EXISTS filter to avoid loading reservations into memory
+                $tables = Table::where('capacity', '>=', $pax)
+                    ->whereDoesntHave('reservations', function ($q) use ($data, $requestedStart, $requestedEnd) {
+                        $q->whereIn('status', ['pending', 'confirmed'])
+                            ->where('reservation_start_at', '<', $requestedEnd)
+                            ->where('reservation_end_at', '>', $requestedStart);
+                    })
+                    ->orderBy('capacity')
+                    ->get(['id', 'name', 'capacity']);
 
-                // Filter out tables that have conflicting reservations
-                $availableTables = $allTables->filter(function ($table) use ($requestedDateTime) {
-                    $requestedEndTime = $requestedDateTime->copy()->addMinutes(105); // Requested slot also lasts 1 hour 45 minutes
-                    
-                    foreach ($table->reservations as $reservation) {
-                        $reservationDateTime = \Carbon\Carbon::parse(
-                            $reservation->reservation_date->format('Y-m-d') . ' ' . $reservation->reservation_time
-                        );
-                        $reservationEndTime = $reservationDateTime->copy()->addMinutes(105); // 1 hour 45 minutes
-                        
-                        // Check if the requested time slot overlaps with any existing reservation
-                        // Overlap occurs if: requested start < reservation end AND requested end > reservation start
-                        if ($requestedDateTime->lt($reservationEndTime) && $requestedEndTime->gt($reservationDateTime)) {
-                            return false; // Table is not available due to overlap
-                        }
-                    }
-                    return true; // Table is available
-                });
-
-                // Filter by capacity if pax is provided
-                if (isset($data['pax']) && $data['pax']) {
-                    $availableTables = $availableTables->filter(function ($table) use ($data) {
-                        return $table->capacity >= $data['pax'];
-                    });
-                }
-
-                return $availableTables->map(function ($table) {
+                return $tables->map(function ($table) {
                     return [
                         'id' => $table->id,
                         'name' => $table->name,
                         'capacity' => $table->capacity,
                     ];
-                })->sortBy('capacity')->values();
+                })->values();
             }
         );
 
@@ -223,7 +215,7 @@ class ReservationController extends Controller
             'available' => count($tablesArray) > 0,
             'tables' => $tablesArray,
             'count' => count($tablesArray),
-        ]);
+        ])->header('Cache-Control', 'public, max-age=60'); // 1 minute HTTP cache (availability changes frequently)
     }
 
     /**
@@ -249,7 +241,7 @@ class ReservationController extends Controller
         return response()->json([
             'success' => true,
             'closed_dates' => $closedDates,
-        ]);
+        ])->header('Cache-Control', 'public, max-age=300'); // 5 minutes HTTP cache
     }
 
     /**
@@ -285,7 +277,7 @@ class ReservationController extends Controller
                     'status' => 'confirming',
                     'reservation_id' => $otp->reservation_id,
                     'message' => 'Confirming reservation...',
-                ], 600);
+                ], self::RESERVATION_CACHE_TTL);
 
                 // Queue confirmation (async - no DB write in request)
                 ConfirmReservation::dispatch(
@@ -375,32 +367,50 @@ class ReservationController extends Controller
     public function getRestaurantSettings(Request $request): JsonResponse
     {
         $date = $request->query('date');
+        $maxReservationDate = now()->addDays(self::RESERVATION_MAX_DAYS_AHEAD)->format('Y-m-d');
+
+        if ($date) {
+            $validator = Validator::make(['date' => $date], [
+                'date' => "date|after_or_equal:today|before_or_equal:{$maxReservationDate}",
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Date must be within the next 30 days',
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+        }
+        
+        // Cache key based on date or global
+        $cacheKey = $date ? "restaurant_settings_date_{$date}" : "restaurant_settings_global";
         
         // Use per-date settings if date is provided, otherwise use global settings
-        if ($date) {
-            $dateSettings = ReservationSetting::getDateSettings($date);
-            return response()->json([
-                'success' => true,
-                'settings' => [
+        $settingsData = Cache::remember($cacheKey, 600, function () use ($date) {
+            if ($date) {
+                $dateSettings = ReservationSetting::getDateSettings($date);
+                return [
                     'opening_time' => $dateSettings['opening_time'],
                     'closing_time' => $dateSettings['closing_time'],
                     'deposit_per_pax' => (float) $dateSettings['deposit_per_pax'],
                     'time_slot_interval' => (int) $dateSettings['time_slot_interval'],
-                ],
-            ]);
-        }
-        
-        $settings = RestaurantSetting::getSettings();
-        
-        return response()->json([
-            'success' => true,
-            'settings' => [
+                ];
+            }
+            
+            $settings = RestaurantSetting::getSettings();
+            return [
                 'opening_time' => $settings->opening_time,
                 'closing_time' => $settings->closing_time,
                 'deposit_per_pax' => (float) $settings->deposit_per_pax,
                 'time_slot_interval' => (int) ($settings->time_slot_interval ?? 30),
-            ],
-        ]);
+            ];
+        });
+        
+        return response()->json([
+            'success' => true,
+            'settings' => $settingsData,
+        ])->header('Cache-Control', 'public, max-age=300'); // 5 minutes HTTP cache
     }
 
     /**
@@ -409,44 +419,66 @@ class ReservationController extends Controller
     public function getTimeSlots(Request $request): JsonResponse
     {
         $date = $request->query('date');
-        
-        // Use per-date settings if date is provided, otherwise use global settings
+        $maxReservationDate = now()->addDays(self::RESERVATION_MAX_DAYS_AHEAD)->format('Y-m-d');
+
         if ($date) {
-            $dateSettings = ReservationSetting::getDateSettings($date);
-            $openingTime = \Carbon\Carbon::parse($dateSettings['opening_time']);
-            $closingTime = \Carbon\Carbon::parse($dateSettings['closing_time']);
-            $interval = $dateSettings['time_slot_interval'];
-        } else {
-            $settings = RestaurantSetting::getSettings();
-            $openingTime = \Carbon\Carbon::parse($settings->opening_time);
-            $closingTime = \Carbon\Carbon::parse($settings->closing_time);
-            $interval = $settings->time_slot_interval ?? 30;
+            $validator = Validator::make(['date' => $date], [
+                'date' => "date|after_or_equal:today|before_or_equal:{$maxReservationDate}",
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Date must be within the next 30 days',
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
         }
         
-        $slots = [];
-        $currentTime = $openingTime->copy();
+        // Cache key based on date or global
+        $cacheKey = $date ? "time_slots_date_{$date}" : "time_slots_global";
         
-        while ($currentTime->lt($closingTime)) {
-            $endTime = $currentTime->copy()->addMinutes($interval);
-            
-            if ($endTime->gt($closingTime)) {
-                break;
+        $slots = Cache::remember($cacheKey, 600, function () use ($date) {
+            // Use per-date settings if date is provided, otherwise use global settings
+            if ($date) {
+                $dateSettings = ReservationSetting::getDateSettings($date);
+                $openingTime = \Carbon\Carbon::parse($dateSettings['opening_time']);
+                $closingTime = \Carbon\Carbon::parse($dateSettings['closing_time']);
+                $interval = $dateSettings['time_slot_interval'];
+            } else {
+                $settings = RestaurantSetting::getSettings();
+                $openingTime = \Carbon\Carbon::parse($settings->opening_time);
+                $closingTime = \Carbon\Carbon::parse($settings->closing_time);
+                $interval = $settings->time_slot_interval ?? 30;
             }
             
-            $slots[] = [
-                'start_time' => $currentTime->format('H:i'),
-                'end_time' => $endTime->format('H:i'),
-                'display' => $currentTime->format('g:i A'),
-                'value' => $currentTime->format('H:i'),
-            ];
+            $slots = [];
+            $currentTime = $openingTime->copy();
             
-            $currentTime->addMinutes($interval);
-        }
+            while ($currentTime->lt($closingTime)) {
+                $endTime = $currentTime->copy()->addMinutes($interval);
+                
+                if ($endTime->gt($closingTime)) {
+                    break;
+                }
+                
+                $slots[] = [
+                    'start_time' => $currentTime->format('H:i'),
+                    'end_time' => $endTime->format('H:i'),
+                    'display' => $currentTime->format('g:i A'),
+                    'value' => $currentTime->format('H:i'),
+                ];
+                
+                $currentTime->addMinutes($interval);
+            }
+            
+            return $slots;
+        });
         
         return response()->json([
             'success' => true,
             'time_slots' => $slots,
-        ]);
+        ])->header('Cache-Control', 'public, max-age=300'); // 5 minutes HTTP cache
     }
 
     /**
@@ -482,7 +514,7 @@ class ReservationController extends Controller
                             : 'Reservation is being processed',
                     ];
                     // Re-cache the status
-                    Cache::put("reservation_status_{$sessionId}", $status, 600);
+                    Cache::put("reservation_status_{$sessionId}", $status, self::RESERVATION_CACHE_TTL);
                 }
             }
         }

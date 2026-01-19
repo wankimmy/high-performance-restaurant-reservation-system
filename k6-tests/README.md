@@ -50,34 +50,39 @@ k6 run -e BASE_URL=https://your-production-url.com stress-test.js
 
 ## Test Script
 
-### stress-test.js - Maximum RPS Test (All Endpoints)
+### stress-test.js - Enhanced Maximum RPS Test (All Endpoints)
 
-**Purpose**: Find the highest RPS the system can handle by testing all API endpoints including the complete booking flow.
+**Purpose**: Find the highest RPS the system can handle by testing all API endpoints with realistic weighted random distribution.
 
-- **Stages**: 50 → 1000 users over 750 seconds (12.5 minutes)
-- **Strategy**: Tests all endpoints to maximize throughput and find breaking points
-- **Focus**: Peak RPS, maximum concurrent users, complete booking flow performance
+- **Stages**: No warm-up; 50 → 1000 users (~13 minutes total)
+- **Strategy**: **Weighted random endpoint selection** - creates realistic load patterns instead of fixed sequential execution
+- **Focus**: Peak RPS, maximum concurrent users, realistic traffic distribution
 - **Thresholds**: Lenient (allows up to 30% error rate to find breaking point)
+- **Optimization**: No sleep delays - maximum throughput for stress testing
 
-**Tested Endpoints** (All 9 endpoints including home page):
-- GET `/` (Home Page)
-- GET `/api/v1/restaurant-settings`
-- GET `/api/v1/closed-dates`
-- GET `/api/v1/time-slots`
-- GET `/api/v1/availability`
-- GET `/api/v1/restaurant-settings?date=...`
-- POST `/api/v1/reservations` (creates reservations, OTP sending bypassed for k6 tests)
-- GET `/api/v1/reservation-status` (checks reservation status)
-- POST `/api/v1/resend-otp` (resends OTP, sending bypassed for k6 tests)
+**Key Features**:
+- ✅ **Weighted Random Distribution**: Endpoints are selected based on realistic usage patterns (home page 30%, settings 20%, etc.)
+- ✅ **Modular Architecture**: Each endpoint has its own test function for better organization
+- ✅ **Complete Booking Flow**: Includes reservation creation, status checks, and OTP resending
+- ✅ **Maximum Throughput**: No artificial delays - pushes system to absolute limits
+- ✅ **Per-Endpoint Timing**: Endpoint duration metrics included in the results JSON
 
-**Complete Booking Flow**:
-1. Get restaurant settings
-2. Get closed dates
-3. Get time slots for a date
-4. Check table availability
-5. Create reservation (OTP generated but not sent via WhatsApp)
-6. Check reservation status
-7. Resend OTP (20% chance, OTP generated but not sent via WhatsApp)
+**Tested Endpoints** (All 9 endpoints with weighted distribution):
+- GET `/` (Home Page) - **30% weight** (most frequent)
+- GET `/api/v1/restaurant-settings` - **20% weight** (cached, fast)
+- GET `/api/v1/availability` - **15% weight** (database intensive)
+- POST `/api/v1/reservations` - **10% weight** (creates reservations, OTP sending bypassed)
+- GET `/api/v1/time-slots` - **10% weight**
+- GET `/api/v1/closed-dates` - **5% weight** (cached)
+- GET `/api/v1/restaurant-settings?date=...` - **5% weight**
+- GET `/api/v1/reservation-status` - **3% weight** (checks reservation status)
+- POST `/api/v1/resend-otp` - **2% weight** (resends OTP, sending bypassed)
+
+**Complete Booking Flow** (triggered when availability endpoint is selected):
+1. Check table availability
+2. Create reservation (OTP generated but not sent via WhatsApp)
+3. Check reservation status (50% chance if reservation created)
+4. Resend OTP (15% chance if status checked)
 
 ## Usage Examples
 
@@ -88,6 +93,16 @@ k6 run -e BASE_URL=https://your-production-url.com stress-test.js
 k6 run stress-test.js
 ```
 
+### Control Date Range (Cache Hit Rate)
+
+```bash
+# Recommended range for better cache hit rates
+k6 run -e DATE_RANGE_DAYS=14 stress-test.js
+
+# Wider range (more DB work, lower cache hit rate)
+k6 run -e DATE_RANGE_DAYS=30 stress-test.js
+```
+
 ### Monitor System Resources
 
 **⚠️ IMPORTANT**: Monitor your system resources while stress tests run!
@@ -96,6 +111,13 @@ k6 run stress-test.js
 # Windows: Open Task Manager or Resource Monitor
 # Linux/Mac: Use htop or top in another terminal
 htop  # or: top
+```
+
+**Database note**: If you changed `docker/mysql/my.cnf` (e.g., buffer pool),
+restart MySQL to apply changes:
+
+```bash
+docker-compose restart mysql
 ```
 
 ### Custom Virtual Users and Duration
@@ -145,6 +167,29 @@ k6 run --out influxdb=http://localhost:8086/k6 stress-test.js
 - ✅ **System handling load well**: Error rate < 10%, response times < 1s
 - ⚠️ **System under stress**: Error rate 10-20%, response times 1-3s
 - ❌ **System overloaded**: Error rate > 20%, response times > 3s
+
+## Stress Test Result (Summary)
+**Environment**: Docker Desktop on Windows, 2 vCPU / 4 GB RAM  
+**App runtime**: Laravel Octane (Swoole), `OCTANE_WORKERS=4`, `OCTANE_TASK_WORKERS=2`  
+**DB**: MySQL 8, `innodb_buffer_pool_size=512M`, `max_connections=500`  
+**Test profile**: `DATE_RANGE_DAYS=14`, 5-minute warm-up, 50 -> 1000 VUs  
+**Command**: `k6 run -e DATE_RANGE_DAYS=14 stress-test.js`
+
+**Results:**
+- **Total Requests**: 84,455
+- **Peak RPS**: 73.81 requests/second
+- **Failed Requests**: 17.43%
+- **Max Virtual Users**: 1000
+- **Avg Response Time**: 5,368.81 ms
+- **P95 Response Time**: 14,487.20 ms
+- **P99 Response Time**: 16,916.60 ms
+- **Status**: ⚠️ System under stress, ❌ response times critical
+
+**Note**: Thresholds for `http_req_duration` and `http_req_duration{status:200}` were exceeded in this run.
+
+### Scaling Suggestions for Higher RPS
+- **Move MySQL off the app host** (separate VM/host or faster disk) to remove I/O contention.
+- **Increase DB cache** (larger buffer pool on higher RAM) and keep data on SSD/NVMe.
 
 ## Tips
 
