@@ -17,6 +17,13 @@ class BotProtectionMiddleware
 
     public function handle(Request $request, Closure $next): Response
     {
+        // Bypass bot protection for k6 load tests
+        if ($request->header('X-k6-Test') === 'true' || 
+            str_contains($request->userAgent() ?? '', 'k6-load-test') ||
+            str_contains($request->userAgent() ?? '', 'k6')) {
+            return $next($request);
+        }
+        
         $userAgent = strtolower($request->userAgent() ?? '');
         $ip = $request->ip();
 

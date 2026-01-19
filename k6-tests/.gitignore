@@ -1,0 +1,7 @@
+# k6 test results
+results/
+*.json
+
+# OS files
+.DS_Store
+Thumbs.db

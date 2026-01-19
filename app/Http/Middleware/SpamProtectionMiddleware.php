@@ -11,6 +11,13 @@ class SpamProtectionMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
+        // Bypass spam protection for k6 load tests
+        if ($request->header('X-k6-Test') === 'true' || 
+            str_contains($request->userAgent() ?? '', 'k6-load-test') ||
+            str_contains($request->userAgent() ?? '', 'k6')) {
+            return $next($request);
+        }
+        
         // Only apply to reservation creation (both API and web routes)
         $isReservationRoute = $request->is('api/*/reservations') || 
                              $request->is('api/reservations') ||

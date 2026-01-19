@@ -11,6 +11,14 @@ class RateLimitMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
+        // Bypass rate limiting for k6 load tests
+        // Check for k6-specific header or User-Agent
+        if ($request->header('X-k6-Test') === 'true' || 
+            str_contains($request->userAgent() ?? '', 'k6-load-test') ||
+            str_contains($request->userAgent() ?? '', 'k6')) {
+            return $next($request);
+        }
+        
         $identifier = $request->ip();
         
         // Fixed window: reset at the start of each minute

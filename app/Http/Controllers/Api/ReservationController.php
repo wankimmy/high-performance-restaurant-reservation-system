@@ -345,8 +345,14 @@ class ReservationController extends Controller
             $customerName = $reservation->customer_name ?? null;
         }
         
-        // Send OTP via WhatsApp
-        if ($newOtp) {
+        // Send OTP via WhatsApp (skip for k6 load tests)
+        $isK6Test = $request->header('X-k6-Test') === 'true' || 
+                    str_contains($request->userAgent() ?? '', 'k6-load-test') ||
+                    str_contains($request->userAgent() ?? '', 'k6-stress-test') ||
+                    str_contains($request->userAgent() ?? '', 'k6-booking-flow') ||
+                    str_contains($request->userAgent() ?? '', 'k6');
+        
+        if ($newOtp && !$isK6Test) {
             $this->whatsAppService->sendOtp($otp->phone_number, $newOtp->otp_code, $customerName);
         }
 

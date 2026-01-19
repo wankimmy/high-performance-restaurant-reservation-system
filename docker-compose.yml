@@ -70,25 +70,25 @@ services:
       retries: 5
       interval: 3s
 
-  phpmyadmin:
-    image: phpmyadmin:latest
-    container_name: restaurant_phpmyadmin
-    restart: unless-stopped
-    ports:
-      - "8080:80"
-    networks:
-      - restaurant_network
-    env_file:
-      - .env
-    environment:
-      - PMA_HOST=mysql
-      - PMA_PORT=3306
-      - PMA_USER=${DB_USERNAME}
-      - PMA_PASSWORD=${DB_PASSWORD}
-      - UPLOAD_LIMIT=50M
-    depends_on:
-      mysql:
-        condition: service_healthy
+  # phpmyadmin:
+  #   image: phpmyadmin:latest
+  #   container_name: restaurant_phpmyadmin
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8080:80"
+  #   networks:
+  #     - restaurant_network
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     - PMA_HOST=mysql
+  #     - PMA_PORT=3306
+  #     - PMA_USER=${DB_USERNAME}
+  #     - PMA_PASSWORD=${DB_PASSWORD}
+  #     - UPLOAD_LIMIT=50M
+  #   depends_on:
+  #     mysql:
+  #       condition: service_healthy
 
   whatsapp-service:
     build:

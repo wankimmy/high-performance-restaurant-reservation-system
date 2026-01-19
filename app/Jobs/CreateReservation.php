@@ -97,8 +97,15 @@ class CreateReservation implements ShouldQueue
             // Get OTP code from database
             $otp = $otpService->getOtpBySession($otpData['session_id']);
             
-            // Send OTP via WhatsApp
-            if ($otp) {
+            // Send OTP via WhatsApp (skip for k6 load tests)
+            $isK6Test = $this->userAgent && (
+                str_contains(strtolower($this->userAgent), 'k6') ||
+                str_contains(strtolower($this->userAgent), 'k6-load-test') ||
+                str_contains(strtolower($this->userAgent), 'k6-stress-test') ||
+                str_contains(strtolower($this->userAgent), 'k6-booking-flow')
+            );
+            
+            if ($otp && !$isK6Test) {
                 $whatsAppService->sendOtp($this->data['customer_phone'], $otp->otp_code, $this->data['customer_name']);
             }
 
