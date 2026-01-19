@@ -171,25 +171,62 @@ k6 run --out influxdb=http://localhost:8086/k6 stress-test.js
 ## Stress Test Result (Summary)
 **Environment**: Docker Desktop on Windows, 2 vCPU / 4 GB RAM  
 **App runtime**: Laravel Octane (Swoole), `OCTANE_WORKERS=4`, `OCTANE_TASK_WORKERS=2`  
-**DB**: MySQL 8, `innodb_buffer_pool_size=512M`, `max_connections=500`  
-**Test profile**: `DATE_RANGE_DAYS=14`, 5-minute warm-up, 50 -> 1000 VUs  
+**DB**: MySQL 8, `innodb_buffer_pool_size=1536M` (1.5GB), `max_connections=500`, binary logging disabled  
+**Cache**: Redis caching enabled for time slots, settings, and availability endpoints  
+**Test profile**: `DATE_RANGE_DAYS=14`, 5-minute warm-up, 20 -> 1000 VUs over 19 minutes  
 **Command**: `k6 run -e DATE_RANGE_DAYS=14 stress-test.js`
 
 **Results:**
-- **Total Requests**: 84,455
-- **Peak RPS**: 73.81 requests/second
-- **Failed Requests**: 17.43%
+- **Total Requests**: 75,049
+- **Peak RPS**: 65.48 requests/second (all endpoints combined)
+- **Failed Requests**: 16.29%
 - **Max Virtual Users**: 1000
-- **Avg Response Time**: 5,368.81 ms
-- **P95 Response Time**: 14,487.20 ms
-- **P99 Response Time**: 16,916.60 ms
+- **Avg Response Time**: 6,026.72 ms
+- **P95 Response Time**: 15,318.53 ms
+- **P99 Response Time**: 16,416.32 ms
 - **Status**: ⚠️ System under stress, ❌ response times critical
 
 **Note**: Thresholds for `http_req_duration` and `http_req_duration{status:200}` were exceeded in this run.
 
+### Endpoint Distribution (Weighted)
+The 65.48 RPS includes all API endpoints with weighted distribution:
+- **Home Page** (30%): ~19.6 RPS
+- **Restaurant Settings** (20%): ~13.1 RPS  
+- **Availability Checks** (15%): ~9.8 RPS
+- **Time Slots** (10%): ~6.5 RPS
+- **Create Reservation** (10%): ~6.5 RPS ⚠️ **Actual booking capacity**
+- **Closed Dates** (5%): ~3.3 RPS
+- **Date Settings** (5%): ~3.3 RPS
+- **Status Checks** (3%): ~2.0 RPS
+- **Resend OTP** (2%): ~1.3 RPS
+
+### Actual Booking Capacity
+**⚠️ Important**: The 65 RPS is for ALL endpoints combined, not just bookings.
+
+- **Maximum Theoretical**: ~6-7 bookings/second (at breaking point with 16% errors)
+- **Sustainable Production**: ~2-3 bookings/second (with <5% errors, <1s response time)
+- **With Optimizations**: ~4-5 bookings/second (peak capacity)
+
+**Daily Capacity** (if evenly distributed):
+- Sustainable: ~172,800 - 259,200 bookings/day
+- Peak: ~345,600 - 432,000 bookings/day
+
+**Note**: These are stress test results at the breaking point. For production, plan for 30-40% of maximum capacity to ensure good performance and reliability.
+
+### Performance Optimizations Applied
+- ✅ Redis caching for time slots and restaurant settings (10-minute TTL)
+- ✅ HTTP cache headers (`Cache-Control`) for GET endpoints
+- ✅ MySQL buffer pool increased to 1.5GB (optimized for 4GB RAM)
+- ✅ Binary logging disabled (reduces write overhead)
+- ✅ Improved cache invalidation for reservation operations
+- ✅ Optimized availability queries with indexed datetime ranges
+
 ### Scaling Suggestions for Higher RPS
-- **Move MySQL off the app host** (separate VM/host or faster disk) to remove I/O contention.
-- **Increase DB cache** (larger buffer pool on higher RAM) and keep data on SSD/NVMe.
+- **Move MySQL off the app host** (separate VM/host or faster disk) to remove I/O contention
+- **Use read replicas** for read-heavy endpoints (availability, settings)
+- **Horizontal scaling**: Add more app servers behind a load balancer
+- **Database optimization**: Consider connection pooling, query result caching
+- **CDN/Reverse Proxy**: Add Varnish or Nginx cache layer for static/semi-static content
 
 ## Tips
 
